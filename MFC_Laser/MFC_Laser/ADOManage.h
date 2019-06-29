@@ -111,6 +111,8 @@ public:
 
 	CString DZGetRelateData(CString strImei, CString ziduan);
 
+	_RecordsetPtr GetRela1_13(CString IMEI);
+
 	
 	//镭雕后更新数据操作
 	int CheckIMEIExit(CString strImei);
@@ -128,6 +130,9 @@ public:
 	//判断镭雕IMEI是否存在
 	_RecordsetPtr UpdateLdSnAndImei(CString strsn, CString strimei, CString zhidan); //镭雕完更新SN和IMEI到记录表
 
+	_RecordsetPtr UpdateSubIMEISegment(CString zhidan, CString val);
+
+
 	_RecordsetPtr UpdateLdSn(CString strsn, CString zhidan);
 
 	_RecordsetPtr UpdateReLdData(CString strimei);
@@ -144,7 +149,9 @@ public:
 	//通用函数
 	_RecordsetPtr GetRst();//干掉某张表数据用的
 	CString GetTime();//获取当前系统时间
-	CString CreateIMEI15(CString imei);//用来算IMEI校验位用的
+	CString CreateIMEI15(CString imei);
+	CString GetSubSegment(CString zhidan);
+	//用来算IMEI校验位用的
 public:
 	CString IMEI2Str, IMEI3Str, IMEI4Str, IMEI5Str, IMEI6Str, IMEI7Str, IMEI8Str, IMEI9Str, IMEI10Str, IMEI11Str\
 		, IMEI12Str, IMEI13Str;

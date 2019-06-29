@@ -8,9 +8,10 @@
 // Modified by jingzhou xu
 #include "stdafx.h"
 #include "CSpreadSheet.h"
+#include "odbcinst.h"
 #ifndef CSPREADSHEET_CPP
 #define CSPREADSHEET_CPP
-
+#pragma comment(lib,"odbccp32.lib")
 #pragma comment(lib, "legacy_stdio_definitions.lib")
 // Open spreadsheet for reading and writing
 CSpreadSheet::CSpreadSheet(CString File, CString SheetOrSeparator, bool Backup) :
@@ -38,7 +39,7 @@ m_bAppend(false), m_bBackup(Backup), m_bTransaction(false)
 		m_Database = new CDatabase;
 		GetExcelDriver();
 		m_sDsn.Format(L"DRIVER={%s};DSN='';FIRSTROWHASNAMES=1;READONLY=FALSE;CREATE_DB=\"%s\";DBQ=%s", m_sExcelDriver, m_sFile, m_sFile);
-
+		//AfxMessageBox(m_sDsn);
 		if (Open())
 		{
 			if (m_bBackup)
@@ -1267,29 +1268,55 @@ short CSpreadSheet::CalculateColumnNumber(CString column, bool Auto)
 // Get the name of the Excel-ODBC driver
 void CSpreadSheet::GetExcelDriver()
 {
-	char szBuf[2001];
+	//char szBuf[2001];
+	//WORD cbBufMax = 2000;
+	//WORD cbBufOut;
+	//char *pszBuf = szBuf;
+
+	//// Get the names of the installed drivers ("odbcinst.h" has to be included )
+	//if(!SQLGetInstalledDrivers((LPWSTR)szBuf,cbBufMax,& cbBufOut))
+	//{
+	//	m_sExcelDriver = "";
+	//}
+	//CString str ;
+	//str.Format(L"%s", szBuf);
+	//// Search for the driver...
+	//do
+	//{
+	//	if( strstr(pszBuf, "Excel") != 0 )
+	//	{
+	//		// Found !
+	//		m_sExcelDriver = CString( pszBuf );
+	//		break;
+	//	}
+	//	pszBuf = strchr( pszBuf, '\0' ) + 1;
+	//}
+	//while( pszBuf[1] != '\0' );
+	wchar_t szBuf[2001];
+	wchar_t excl[] = L"Excel";
 	WORD cbBufMax = 2000;
 	WORD cbBufOut;
-	char *pszBuf = szBuf;
-
-	// Get the names of the installed drivers ("odbcinst.h" has to be included )
-	if(!SQLGetInstalledDrivers((LPWSTR)szBuf,cbBufMax,& cbBufOut))
-	{
-		m_sExcelDriver = "";
-	}
-	
-	// Search for the driver...
+	wchar_t *pszBuf = szBuf;
+	CString sDriver;
+	// 获取已安装驱动的名称(函数在odbcinst.h里)
+	if (!SQLGetInstalledDrivers(szBuf, cbBufMax, &cbBufOut))
+		m_sExcelDriver = L"";
+	// 检索已安装的驱动是否有Excel...
+	// AfxMessageBox(CString(pszBuf));
 	do
 	{
-		if( strstr( pszBuf, "Excel" ) != 0 )
+		if (wcsstr(pszBuf, excl) != 0)
 		{
-			// Found !
-			m_sExcelDriver = CString( pszBuf );
+			//发现 !
+			sDriver = CString(pszBuf);
 			break;
 		}
-		pszBuf = strchr( pszBuf, '\0' ) + 1;
-	}
-	while( pszBuf[1] != '\0' );
+		wchar_t ze = { '\0' };
+		pszBuf = wcschr(pszBuf, ze) + 1;
+	} while (pszBuf[1] != '\0');
+
+	m_sExcelDriver =  sDriver;
+	//AfxMessageBox(m_sExcelDriver);
 }
 
 #endif

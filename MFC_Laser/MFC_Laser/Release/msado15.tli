@@ -1,9 +1,9 @@
-﻿// Created by Microsoft (R) C/C++ Compiler Version 14.15.26729.0 (7be5701c).
+﻿// Created by Microsoft (R) C/C++ Compiler Version 14.15.26729.0 (f89f49f3).
 //
-// f:\xhh工作日常\工作项目\mfc_laser\mfc_laser\release\msado15.tli
+// f:\版本库\laser\mfc_laser\mfc_laser\release\msado15.tli
 //
 // Wrapper implementations for type library msado15.dll
-// compiler-generated file created 05/31/19 at 11:27:32 - DO NOT EDIT!
+// compiler-generated file created 06/26/19 at 19:59:10 - DO NOT EDIT!
 
 #pragma once
 

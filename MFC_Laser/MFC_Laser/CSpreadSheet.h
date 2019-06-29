@@ -52,7 +52,7 @@ private:
 	CString m_stempSql; // Temporary string for SQL statements or for use by functions
 	CString m_stempString; // Temporary string for use by functions
 	CString m_sSheetName; // Sheet name of Excel spreadsheet
-	CString m_sExcelDriver = L"MICROSOFT EXCEL DRIVER (*.XLS)"; // Name of Excel Driver
+	CString m_sExcelDriver; // Name of Excel Driver
 	CString m_sFile; // Spreadsheet file name
 	CString m_sSeparator; // Separator in text delimited spreadsheet
 	CString m_sLastError; // Last error message

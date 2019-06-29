@@ -218,8 +218,9 @@ _RecordsetPtr ADOManage::MOBAN(CString str1, CString str2)
 _RecordsetPtr ADOManage::GetZhiDan()
 {
 	m_pRecordSet.CreateInstance(__uuidof(Recordset));//初始化Recordset指针
+	/*where Status = '0' or Status = '1'*/
 
-	CString strSql = _T("SELECT [ZhiDan] FROM [GPSTest].[dbo].[Gps_ManuOrderParam] where Status='0' or Status='1' order by ZhiDan");
+	CString strSql = _T("SELECT [ZhiDan] FROM [GPSTest].[dbo].[Gps_ManuOrderParam] where Status!='3' order by ZhiDan");
 
 	m_pRecordSet = m_pConnection->Execute(_bstr_t(strSql), NULL, adCmdText);//直接执行语句
 	return m_pRecordSet;
@@ -231,7 +232,7 @@ _RecordsetPtr ADOManage::GetIMEIByZhiDan(CString strzhidan)
 	try{
 		m_pRecordSet.CreateInstance(__uuidof(Recordset));
 		//初始化Recordset指针
-		CString strSql = _T("SELECT SN1,SN2,SN3,IMEIStart,IMEIEnd  FROM [GPSTest].[dbo].[Gps_ManuOrderParam] WHERE ZhiDan ='") + strzhidan + _T("'");
+		CString strSql = _T("SELECT SN1,SN2,SN3,IMEIStart,IMEIEnd  FROM [GPSTest].[dbo].[Gps_ManuOrderParam] WHERE ZhiDan ='") + strzhidan +L"' and Status!='3'";
 
 		m_pRecordSet = m_pConnection->Execute(_bstr_t(strSql), NULL, adCmdText);//直接执行语句
 		return m_pRecordSet;
@@ -327,6 +328,7 @@ int ADOManage::InsetrDZLdRecordParam(CString strzhidan, CString strtemplate, CSt
 	CString LdImei, CString increasingnum, CString haverelative,
 	CString relativeziduan, CString bits, CString imeipre)
 {
+
 	try {
 		//初始化Recordset指针
 		m_pRecordSet.CreateInstance(__uuidof(Recordset));
@@ -339,9 +341,9 @@ int ADOManage::InsetrDZLdRecordParam(CString strzhidan, CString strtemplate, CSt
 		m_pRecordSet = m_pConnection->Execute(_bstr_t(strSql), NULL, adCmdText);//直接执行语句
 		if (m_pRecordSet->adoEOF) {
 			//将数据插入表中
-			strSql = _T("insert into[GPSTest].[dbo].[Gps_ManuLdRecordParam](Zhidan, LdTemplate, DZhaHavecheckCode,IncreasingNum,HaveRelativeZiduan,RelativeZiduan,Bits,IMEIPre,LdImei)values('") \
+			strSql = _T("insert into[GPSTest].[dbo].[Gps_ManuLdRecordParam](Zhidan, LdTemplate, DZhaHavecheckCode,IncreasingNum,HaveRelativeZiduan,RelativeZiduan,Bits,IMEIPre,LdImei,SubIMEISegment)values('") \
 				+ strzhidan + _T("', '") + strtemplate + _T("', '") + checkcode + _T("','") + increasingnum \
-				+ _T("','") + haverelative + _T("','") + relativeziduan + _T("','") + bits + _T("','") + imeipre+L"','"+LdImei + _T("')");
+				+ _T("','") + haverelative + _T("','") + relativeziduan + _T("','") + bits + _T("','") + imeipre+L"','"+LdImei +L"','"+L""+ _T("')");
 			m_pConnection->Execute(_bstr_t(strSql), &Affectline, adCmdText);//直接执行语句
 			return 1;
 		}
@@ -404,9 +406,33 @@ _RecordsetPtr ADOManage::UpdateLdSnAndImei(CString strsn, CString strimei, CStri
 		AfxMessageBox(e.Description());/*打印出异常原因*/
 
 	}
-
 	return m_pRecordSet;
 }
+
+_RecordsetPtr ADOManage::UpdateSubIMEISegment(CString zhidan, CString val) {
+	//初始化Recordset指针
+	m_pRecordSet.CreateInstance(__uuidof(Recordset));
+
+	//参数
+	_variant_t Affectline;
+	CString strSql;
+
+	//将数据插入表中
+	
+	strSql = _T("UPDATE [GPSTest].[dbo].[Gps_ManuLdRecordParam] SET SubIMEISegment = '") + val + _T("' where Zhidan='") + zhidan + _T("'");
+	//AfxMessageBox(strSql);
+	//如果执行错误就会报异常原因
+	try {
+		m_pConnection->Execute(_bstr_t(strSql), &Affectline, adCmdText);//直接执行语句
+	}
+	catch (_com_error &e)
+	{
+		AfxMessageBox(e.Description());/*打印出异常原因*/
+
+	}
+	return m_pRecordSet;
+}
+
 
 //更新当前SN
 _RecordsetPtr ADOManage::UpdateLdSn(CString strsn, CString zhidan) {
@@ -496,7 +522,6 @@ int ADOManage::CheckLdzhidanExit(CString zhidan)
 	{
 		return 0;
 	}
-
 	return 1;
 }
 
@@ -1008,6 +1033,7 @@ int ADOManage::CheckLdIMEIExitLM(CString strImei)
 	m_pRecordSet.CreateInstance(__uuidof(Recordset));
 	//初始化Recordset指针
 	CString strSql = _T("SELECT * FROM [GPSTest].[dbo].[LPrintMarkData] WHERE [IMEI] ='") + strImei + _T("'");
+	//AfxMessageBox(strSql);
 	m_pRecordSet = m_pConnection->Execute(_bstr_t(strSql), NULL, adCmdText);//直接执行语句
 	int count = m_pRecordSet->GetRecordCount();
 	//如果查出来的数据为空，则m_pRecordSet->adoEOF返回的是ture，此时函数返回0代表此IMEI不存在，否则返回1代表IMEI存在
@@ -1241,6 +1267,22 @@ CString ADOManage::DZGetRelateData(CString strImei,CString ziduan)
 	return GetData;
 }
 
+_RecordsetPtr ADOManage::GetRela1_13(CString IMEI)
+{
+	try 
+	{
+		m_pRecordSet.CreateInstance(__uuidof(Recordset));
+		//初始化Recordset指针
+		//CString strSql = _T("SELECT SN1,SN2,SN3,IMEIStart,IMEIEnd  FROM [GPSTest].[dbo].[Gps_ManuOrderParam] WHERE ZhiDan ='") + strzhidan + _T("'");
+		CString strSql = _T("SELECT * FROM [GPSTest].[dbo].[DataRelativeSheet] WHERE [IMEI1] ='") + IMEI + _T("'");
+		m_pRecordSet = m_pConnection->Execute(_bstr_t(strSql), NULL, adCmdText);//直接执行语句
+		return m_pRecordSet;
+	}
+	catch (_com_error &e) {
+		AfxMessageBox(e.Description());/*打印出异常原因*/
+	}
+}
+
 /*对比模块函数*/
 
 //判断IMEI是否存在
@@ -1422,4 +1464,23 @@ CString ADOManage::CreateIMEI15(CString imei)
 	abc = imei + resultStr;
 	imei.ReleaseBuffer();
 	return abc;
+}
+
+CString ADOManage::GetSubSegment(CString zhidan)
+{
+	CString IMEI = L"";
+	_variant_t IMEIVAl;
+	m_pRecordSet.CreateInstance(__uuidof(Recordset));
+	//初始化Recordset指针
+	CString strSql = _T("SELECT SubIMEISegment FROM [GPSTest].[dbo].[Gps_ManuLdRecordParam] WHERE [ZhiDan] ='") + zhidan + _T("'");
+	m_pRecordSet = m_pConnection->Execute(_bstr_t(strSql), NULL, adCmdText);//直接执行语句
+	if (!m_pRecordSet->adoEOF)
+	{
+		IMEIVAl = m_pRecordSet->GetCollect("SubIMEISegment");
+		if (IMEIVAl.vt != NULL)
+		{
+			IMEI = IMEIVAl.bstrVal;
+		}
+	}
+	return IMEI;
 }

@@ -1,7 +1,8 @@
 #include "stdafx.h"
 #include "Laser.h"
+#include "CDZ_Laser.h"
 //#include "HansAdvDllDefine.h"
-
+extern BOOL waitStopFlag;
 CLaser::CLaser()
 {
 }
@@ -143,11 +144,19 @@ BOOL CLaser::QuerytouchActive(HWND m_hWnd)
 
 BOOL CLaser::StartMark(BOOL bWaitTouch, BOOL bWaitEnd, int nOverTime)
 {
+	//AfxMessageBox(L"1");
+	waitStopFlag = TRUE;
 	int nRet = HS_Mark(0, bWaitTouch, bWaitEnd, nOverTime, FALSE);
+	waitStopFlag = FALSE;
 	if (0 == nRet)
 	{		
+		//AfxMessageBox(L"2");
 		if (bWaitEnd == FALSE)
+		{
+			//AfxMessageBox(L"3");
 			return TRUE;
+
+		}
 
 		int nFlag=0;
 		BOOL Result = FALSE;
@@ -157,8 +166,10 @@ BOOL CLaser::StartMark(BOOL bWaitTouch, BOOL bWaitEnd, int nOverTime)
 			if (0 == nRet)
 			{
 				//Mark doing...
+				//AfxMessageBox(L"3");
 				if (nFlag==1)
 				{
+					//AfxMessageBox(L"4");
 					UINT nTime;
 					HS_GetMarkTime(&nTime);
 					CString str;
@@ -168,6 +179,7 @@ BOOL CLaser::StartMark(BOOL bWaitTouch, BOOL bWaitEnd, int nOverTime)
 				}
 				else if (nFlag == 0)
 				{
+					//AfxMessageBox(L"5");
 					Sleep(1000);
 					continue;
 				}
