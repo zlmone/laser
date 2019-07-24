@@ -122,6 +122,7 @@ public:
 	//ÅÐ¶ÏIMEIÊÇ·ñ´æÔÚ
 	
 	int CheckLdIMEIExitLM(CString strImei);
+	int CheckLdIMEIExitPrint(CString strImei);
 	int CheckLdIMEIExitTR(CString strImei);
 	int CheckLdIMEIExit(CString strImei);
 	CString GetRelateSN(CString strImei);

@@ -112,6 +112,8 @@ public:
 
 	CWinThread* WriteThread;//下载写线程句柄
 	CString Port1No;//串口名称变量
+	CString Port4No;
+	CString Port5No;
 	HANDLE Port1handler;
 	CString getBasebandID();
 	//串口句柄
@@ -180,10 +182,13 @@ public:
 	//继电器串口
 	CString Port3No;//继电器串口名称变量
 	HANDLE Port3handler;//继电器串口句柄
+	HANDLE Port4handler;
+	HANDLE Port5handler;
 	BYTE * CStrToByte(int len, CString str);
 	CString HexStr2BinStr(CString HexStr);
 	void BurningCylinderPress(int argument); //控制烧写工位气缸上升和下压
 	void CompareCylinderPress(int argument); //控制对比工位气缸上升和下压
+	void BatOnAndOff(int argument);
 	afx_msg void OnKillfocusCompareimei2Edit();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	CEdit m_CompareLog;
@@ -269,4 +274,11 @@ public:
 	CRichEditCtrl m_CpLog;
 	CComboBox m_IncreasingNumber;
 	afx_msg void OnBnClickedButton2();
+	BOOL m_NocheckCode;
+	afx_msg void OnBnClickedButton3();
+	afx_msg void OnBnClickedButton5();
+	CButton m_AutoCheckPrint;
+	BOOL m_AutoCheckPrintVal;
+	afx_msg void OnDropdownJdqCombo();
+	CComboBox m_BurnPort;
 };

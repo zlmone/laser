@@ -306,7 +306,7 @@ int ADOManage::InsetrLdRecordParam(CString strzhidan, CString strtemplate, CStri
 		m_pRecordSet = m_pConnection->Execute(_bstr_t(strSql), NULL, adCmdText);//直接执行语句
 		if (m_pRecordSet->adoEOF){
 			//将数据插入表中
-			strSql = _T("insert into[GPSTest].[dbo].[Gps_ManuLdRecordParam](Zhidan, LdTemplate, LdCurrentImei,CheckCode,ldSn,LdImei)values('") + strzhidan + _T("', '") + strtemplate + _T("', '") + strcurrentimei + _T("', '") + checkcode + _T("','") + sncurrent + _T("','")+LdImei+_T("')");
+			strSql = _T("insert into[GPSTest].[dbo].[Gps_ManuLdRecordParam](Zhidan, LdTemplate, LdCurrentImei,CheckCode,ldSn,LdImei,SubIMEISegment)values('") + strzhidan + _T("', '") + strtemplate + _T("', '") + strcurrentimei + _T("', '") + checkcode + _T("','") + sncurrent + _T("','")+LdImei+L"','"+L""+_T("')");
 			m_pConnection->Execute(_bstr_t(strSql), &Affectline, adCmdText);//直接执行语句
 			return 1;
 		}
@@ -586,7 +586,7 @@ CString ADOManage::checkAndGetIMEIbyID(CString chipid)
 	m_pRecordSet = m_pConnection->Execute(_bstr_t(strSql), NULL, adCmdText);//直接执行语句
 
 	//如果查出来的数据为空，则m_pRecordSet->adoEOF返回的是ture，此时函数返回0代表此IMEI不存在，否则返回1代表IMEI存在
-	if (!m_pRecordSet->adoEOF)
+	if (!m_pRecordSet->adoEOF&&m_pRecordSet->GetCollect(L"IMEI").vt!=VT_NULL)
 	{
 		chipidBandIMEI = m_pRecordSet->GetCollect(L"IMEI");
 	}
@@ -1045,6 +1045,24 @@ int ADOManage::CheckLdIMEIExitLM(CString strImei)
 	return 1;
 }
 
+//查IMEI是否存在于机身打印表
+int ADOManage::CheckLdIMEIExitPrint(CString strImei)
+{
+	m_pRecordSet.CreateInstance(__uuidof(Recordset));
+	//初始化Recordset指针
+	CString strSql = _T("SELECT * FROM [GPSTest].[dbo].[Gps_ManuPrintParam] WHERE [IMEI] ='") + strImei + _T("'");
+	//AfxMessageBox(strSql);
+	m_pRecordSet = m_pConnection->Execute(_bstr_t(strSql), NULL, adCmdText);//直接执行语句
+	int count = m_pRecordSet->GetRecordCount();
+	//如果查出来的数据为空，则m_pRecordSet->adoEOF返回的是ture，此时函数返回0代表此IMEI不存在，否则返回1代表IMEI存在
+	if (m_pRecordSet->adoEOF)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
 //查Gps_TestResult表是否存在IMEI
 int ADOManage::CheckLdIMEIExitTR(CString strImei)
 {
@@ -1477,9 +1495,13 @@ CString ADOManage::GetSubSegment(CString zhidan)
 	if (!m_pRecordSet->adoEOF)
 	{
 		IMEIVAl = m_pRecordSet->GetCollect("SubIMEISegment");
-		if (IMEIVAl.vt != NULL)
+		if (IMEIVAl.vt != VT_NULL)
 		{
 			IMEI = IMEIVAl.bstrVal;
+		}
+		else
+		{
+			IMEI = L"";
 		}
 	}
 	return IMEI;
