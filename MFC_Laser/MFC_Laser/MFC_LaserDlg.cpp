@@ -11,8 +11,6 @@
 #include "UnLock.h"
 #include "ResizeCtrl.h"
 #include "SetRelative.h"
-#include <vector>
-using namespace std;
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -33,11 +31,11 @@ CString ComputerIp;    //本机信息
 CString zhidan;        //将选择的订单名称放在这个全局变量里
 CString IniTestCommand, IniTestRec, IniCheckIMEICommand, IniCheckIMEICommandRec, IniBurningCommand1;
 CString IniBurningCommand1Rec, IniBurningCommand2, IniBurningCommand2Rec, IMEIIniDataDelimiter1, IMEIIniDataDelimiter2;
-CString IMEIIniDataDelimiter1Length/*, IniDataDelimiter2Length*/,RIDIniDataDelimiter1,RIDIniDataDelimiter2,RIDIniDataDelimiter1Length;
+CString IMEIIniDataDelimiter1Length/*, IniDataDelimiter2Length*/, RIDIniDataDelimiter1, RIDIniDataDelimiter2, RIDIniDataDelimiter1Length;
 CString iniCheckRIDCommand, iniCheckRIDCommandRec;
 CWindowSizeMange myDlgManage;
 //三个工位的工作状态，true为空闲
-BOOL BurnFinishFlag = TRUE;  
+BOOL BurnFinishFlag = TRUE;
 BOOL LdFinishFlag = TRUE;
 BOOL CompareFinishFlag = TRUE;
 BOOL EnterScanFlag = FALSE;
@@ -64,9 +62,9 @@ extern BOOL RelativeIMEI2, RelativeIMEI3, RelativeIMEI4, RelativeIMEI5, Relative
 extern BOOL RelativeIMEI12, RelativeIMEI13;
 
 //三个工位的IMEI传递变量
-CString BurnToLd,LdToCompare;
+CString BurnToLd, LdToCompare;
 
- //三个工位标识
+//三个工位标识
 unsigned long long Control[3][3] = { { 0, 0, 0 }, { 1, 1, 1 }, { 1, 1, 1 } };
 
 //存贮txt中的IMEI
@@ -88,10 +86,10 @@ class CAboutDlg : public CDialogEx
 public:
 	CAboutDlg();
 
-// 对话框数据
+	// 对话框数据
 	enum { IDD = IDD_ABOUTBOX };
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
 
 // 实现
@@ -125,6 +123,8 @@ CMFC_LaserDlg::CMFC_LaserDlg(CWnd* pParent /*=NULL*/)
 	, m_LdRandom(FALSE)
 	, m_NocheckCode(FALSE)
 	, m_AutoCheckPrintVal(FALSE)
+	, m_BurningEditVal(_T(""))
+	, m_EndIMEIVal(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_OWNUSE);
 
@@ -159,6 +159,8 @@ void CMFC_LaserDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CHECK3, m_AutoCheckPrint);
 	DDX_Check(pDX, IDC_CHECK3, m_AutoCheckPrintVal);
 	DDX_Control(pDX, IDC_BurningPort_COMBO, m_BurnPort);
+	DDX_Text(pDX, IDC_BurningImei_EDIT, m_BurningEditVal);
+	DDX_Text(pDX, IDC_ImeiEnd_EDIT, m_EndIMEIVal);
 }
 
 BEGIN_MESSAGE_MAP(CMFC_LaserDlg, CDialogEx)
@@ -256,7 +258,7 @@ BOOL CMFC_LaserDlg::OnInitDialog()
 
 	/*获取控件位置*/
 	myDlgManage.Init(m_hWnd);
-	SetDlgItemText(ID_PORT,L"8090");
+	SetDlgItemText(ID_PORT, L"8090");
 	//m_RelateSn.SetCheck(TRUE);
 	m_IncreasingNumber.AddString(L"1");
 	m_IncreasingNumber.AddString(L"2");
@@ -354,7 +356,7 @@ void CMFC_LaserDlg::OnBnClickedDbconfigButton()
 }
 
 //填充订单号到下拉框
-void CMFC_LaserDlg::FillZhidanToComBo(){
+void CMFC_LaserDlg::FillZhidanToComBo() {
 	ZhiDanCombo.ResetContent();
 	ADOManage adomanage;
 	adomanage.ConnSQL();
@@ -384,7 +386,7 @@ void CMFC_LaserDlg::OnBnClickedRefreshzhidanButton()
 void CMFC_LaserDlg::OnSelchangeZhidanCombo()
 {
 	UpdateData(TRUE);
-	try{
+	try {
 		// TODO:  在此添加控件通知处理程序代码
 		_variant_t imeitemp;//用来放getcollect变量的
 		int nSel;
@@ -413,7 +415,7 @@ void CMFC_LaserDlg::OnSelchangeZhidanCombo()
 		adomanage.CloseAll();
 		ADOManage adomanage1;
 		adomanage1.ConnSQL();
-		if (adomanage1.GetIMEICurrentAndTemplate(ZhiDanNO) == 1){
+		if (adomanage1.GetIMEICurrentAndTemplate(ZhiDanNO) == 1) {
 			imeitemp = adomanage1.m_pRecordSet1->GetCollect("LdTemplate");
 			SetDlgItemText(IDC_LdTemplate_EDIT, adomanage1.m_pRecordSet1->GetCollect("LdTemplate").bstrVal);
 			SetDlgItemText(IDC_ImeiCurrent_EDIT, adomanage1.m_pRecordSet1->GetCollect("LdCurrentImei").bstrVal);
@@ -427,9 +429,9 @@ void CMFC_LaserDlg::OnSelchangeZhidanCombo()
 			else
 			{
 				CString myIMEI;
-				GetDlgItemText(IDC_LdImei_EDIT,myIMEI);
+				GetDlgItemText(IDC_LdImei_EDIT, myIMEI);
 				SetDlgItemText(IDC_SnCurrent_EDIT, adomanage1.GetRelateSN(myIMEI));
-				SetDlgItemText(IDC_LdSn_EDIT, adomanage1.GetRelateSN(myIMEI));				
+				SetDlgItemText(IDC_LdSn_EDIT, adomanage1.GetRelateSN(myIMEI));
 			}
 			int checkcodeflag;
 			checkcodeflag = adomanage1.m_pRecordSet1->GetCollect("CheckCode").intVal;
@@ -456,7 +458,7 @@ void CMFC_LaserDlg::OnSelchangeZhidanCombo()
 		}
 		adomanage1.CloseAll1();
 	}
-	catch (_com_error &e){
+	catch (_com_error &e) {
 		AfxMessageBox(e.Description());/*打印出异常原因*/
 	}
 }
@@ -486,7 +488,7 @@ void CMFC_LaserDlg::OnBnClickedOpentemplateButton()
 	CString strFilePath;
 
 	GetDlgItemText(IDC_LdTemplate_EDIT, strFilePath);
-	if (strFilePath == ""){
+	if (strFilePath == "") {
 		MessageBox(_T("请先选择模板"), _T("提示"), NULL);
 		return;
 	}
@@ -544,17 +546,17 @@ void CMFC_LaserDlg::OnBnClickedTolockButton()
 	CString LockText;
 	CString ZhuanHuanChar;
 	GetDlgItem(IDC_ToLock_BUTTON)->GetWindowText(LockText);
-	if (LockText == "锁定"){
+	if (LockText == "锁定") {
 		//判断制单选择了没有
 		GetDlgItemText(IDC_ZhiDan_COMBO, zhidan);
-		if (zhidan == ""){
+		if (zhidan == "") {
 			MessageBox(_T("请先选择订单"), _T("提示"), NULL);
 			return;
 		}
 		//判断选择模板了没
 		CString strFilePath;
 		GetDlgItemText(IDC_LdTemplate_EDIT, strFilePath);
-		if (strFilePath == ""){
+		if (strFilePath == "") {
 			MessageBox(_T("请先选择模板"), _T("提示"), NULL);
 			return;
 		}
@@ -580,20 +582,20 @@ void CMFC_LaserDlg::OnBnClickedTolockButton()
 				return;
 			}
 		}*/
-	/*	if (ImeiCurrent.GetLength() != FImeiStart.GetLength()){
-			MessageBox(_T("IMEI当前位不在范围内"), _T("提示"), NULL);
-			return;
-		}
-		if (ImeiCurrent<FImeiStart || ImeiCurrent>FImeiEnd){
-			MessageBox(_T("IMEI当前位不在范围内"), _T("提示"), NULL);
-			return;
-		}*/
-		//将本机信息放在全局变量里
+		/*	if (ImeiCurrent.GetLength() != FImeiStart.GetLength()){
+				MessageBox(_T("IMEI当前位不在范围内"), _T("提示"), NULL);
+				return;
+			}
+			if (ImeiCurrent<FImeiStart || ImeiCurrent>FImeiEnd){
+				MessageBox(_T("IMEI当前位不在范围内"), _T("提示"), NULL);
+				return;
+			}*/
+			//将本机信息放在全局变量里
 		int NumSel;
 		NumSel = m_IncreasingNumber.GetCurSel();
 		m_IncreasingNumber.GetLBText(NumSel, IncreasingNumberStr);
 		IncreasingnumberInt = _ttoi(IncreasingNumberStr);
-		CString localIP,localname;
+		CString localIP, localname;
 		GetDlgItemText(IDC_LocalPcIP_EDIT, localIP);
 		GetDlgItemText(IDC_LocalPcName_EDIT, localname);
 		ComputerIp = localIP + "," + localname;
@@ -643,12 +645,12 @@ void CMFC_LaserDlg::OnBnClickedTolockButton()
 		GetDlgItem(IDC_BUTTON3)->EnableWindow(true);
 		GetDlgItem(IDC_BUTTON5)->EnableWindow(true);
 		GetDlgItem(IDC_OPENRELAY)->EnableWindow(true);
-		
+
 		SetDlgItemText(IDC_ToLock_BUTTON, TEXT("解锁"));
 		ADOManage adomanage;
 		adomanage.ConnSQL();
-		adomanage.InsetrLdRecordParam(zhidan, strFilePath, ImeiCurrent, checkcodeflag, SnCurrent,LdImei);
-		adomanage.GetSoftModelAndVersion(LDsoftmodel,LDversion,zhidan);
+		adomanage.InsetrLdRecordParam(zhidan, strFilePath, ImeiCurrent, checkcodeflag, SnCurrent, LdImei);
+		adomanage.GetSoftModelAndVersion(LDsoftmodel, LDversion, zhidan);
 		adomanage.CloseAll();
 	}
 	else
@@ -659,19 +661,19 @@ void CMFC_LaserDlg::OnBnClickedTolockButton()
 		GetDlgItemText(IDC_OpenLdSystem_BUTTON, LdButton);
 		GetDlgItemText(IDC_CompareConn_BUTTON, CompareButton);
 		GetDlgItemText(IDC_BurningScanningGun_Button, ScanningGunButton);
-		if (BurningButton == "一键关闭"){
+		if (BurningButton == "一键关闭") {
 			MessageBox(_T("请先关闭烧写串口"), _T("提示"), NULL);
 			return;
 		}
-		if (LdButton == "关闭镭雕系统"){
+		if (LdButton == "关闭镭雕系统") {
 			MessageBox(_T("请先关闭镭雕系统"), _T("提示"), NULL);
 			return;
 		}
-		if (CompareButton == "一键关闭"){
+		if (CompareButton == "一键关闭") {
 			MessageBox(_T("请先关闭对比串口"), _T("提示"), NULL);
 			return;
 		}
-		if (ScanningGunButton == "关闭扫描枪模式"){
+		if (ScanningGunButton == "关闭扫描枪模式") {
 			MessageBox(_T("请先关闭扫描枪模式"), _T("提示"), NULL);
 			return;
 		}
@@ -795,7 +797,7 @@ void CMFC_LaserDlg::OnBnClickedOpenldsystemButton()
 {
 	CString LaserSystemTest;
 	GetDlgItem(IDC_OpenLdSystem_BUTTON)->GetWindowText(LaserSystemTest);
-	if (LaserSystemTest == "打开镭雕系统"){
+	if (LaserSystemTest == "打开镭雕系统") {
 		// TODO:  在此添加控件通知处理程序代码
 		if (NULL == m_pCLDStartDlg)
 		{
@@ -820,12 +822,12 @@ void CMFC_LaserDlg::OnBnClickedOpenldsystemButton()
 		if (DllFlag == 0)
 		{
 			SetRicheditText(L"镭雕系统启动成功", 0);
-			WritetoTxt(L"Laser_"+zhidan+_T("_"), L"镭雕系统启动成功\r\n");
+			WritetoTxt(L"Laser_" + zhidan + _T("_"), L"镭雕系统启动成功\r\n");
 		}
 		else
 		{
 			SetRicheditText(L"镭雕系统启动失败，错误代码" + DllStr, 1);
-			WritetoTxt(L"Laser_"+ zhidan + _T("_"), L"镭雕系统启动失败，错误代码" + DllStr+L"\r\n");
+			WritetoTxt(L"Laser_" + zhidan + _T("_"), L"镭雕系统启动失败，错误代码" + DllStr + L"\r\n");
 			return;
 		}
 		//读镭雕模版
@@ -836,7 +838,7 @@ void CMFC_LaserDlg::OnBnClickedOpenldsystemButton()
 		if (DllFlag == 0)
 		{
 			SetRicheditText(L"镭雕模版读取成功", 0);
-			WritetoTxt(L"Laser_"+zhidan + _T("_"), L"镭雕模版读取成功\r\n");
+			WritetoTxt(L"Laser_" + zhidan + _T("_"), L"镭雕模版读取成功\r\n");
 		}
 		else
 		{
@@ -861,7 +863,7 @@ void CMFC_LaserDlg::OnBnClickedOpenldsystemButton()
 }
 
 //关闭镭雕系统
-void CMFC_LaserDlg::CloseLaserSystem(){
+void CMFC_LaserDlg::CloseLaserSystem() {
 	DllFlag = markezd.lmc1_Close();
 
 	DllStr.Format(_T("%d"), DllFlag);
@@ -895,14 +897,14 @@ int CMFC_LaserDlg::FindLdTemplateObject()
 		MessageBox(L"找不到IMEI对象", _T("错误信息"), NULL);
 		return 1;
 	}
-		/*DllFlag = markezd.lmc1_GetEntSize((LPTSTR)(LPCTSTR)ObSN, a, b, c, d, e);
-		if (DllFlag != 0)
-		{
-			DllStr.Format(_T("%d"), DllFlag);
-			SetRicheditText(L"镭雕系统启动失败，错误代码" + DllStr, 1);
-			MessageBox(L"找不到SN对象", _T("错误信息"), NULL);
-			return 1;
-		}*/
+	/*DllFlag = markezd.lmc1_GetEntSize((LPTSTR)(LPCTSTR)ObSN, a, b, c, d, e);
+	if (DllFlag != 0)
+	{
+		DllStr.Format(_T("%d"), DllFlag);
+		SetRicheditText(L"镭雕系统启动失败，错误代码" + DllStr, 1);
+		MessageBox(L"找不到SN对象", _T("错误信息"), NULL);
+		return 1;
+	}*/
 	return 0;
 }
 
@@ -958,413 +960,441 @@ void CMFC_LaserDlg::OnTimer(UINT_PTR nIDEvent)
 //开始镭雕函数
 int CMFC_LaserDlg::LdCore()
 {
-		UpdateData(TRUE);
-		int sendSucceedFlag;
-		CString StrImeiLd,StrSnLd; //镭雕用的变量
-		ADOManage adomanage;
-		adomanage.ConnSQL();
-		LdFinishFlag = FALSE;
-		CString midChange;
-		if (BurnIsOpenFlag)
+	UpdateData(TRUE);
+	int sendSucceedFlag;
+	CString StrImeiLd, StrSnLd; //镭雕用的变量
+	ADOManage adomanage;
+	adomanage.ConnSQL();
+	LdFinishFlag = FALSE;
+	CString midChange;
+	if (BurnIsOpenFlag)
+	{
+		//GetDlgItemText(IDC_NEXTLDIMEI, midChange);
+		SetDlgItemText(IDC_LdImei_EDIT, BurnVec[LdIndex]);
+		UpdateWindow();
+	}
+	//先判断IMEI号段是否已经全部镭雕完
+	if (m_LdRandom)
+	{
+		if (TxTResult.empty())
 		{
-			GetDlgItemText(IDC_NEXTLDIMEI, midChange);
-			SetDlgItemText(IDC_LdImei_EDIT,midChange);
-			UpdateWindow();
-		}
-		//先判断IMEI号段是否已经全部镭雕完
-		if (m_LdRandom)
-		{
-			if (TxTResult.empty())
-			{
-				SetRicheditText(_T("本TXT文件中的IMEI已全部镭雕完毕"), 0);
-				MessageBox(L"本TXT文件中的IMEI已全部镭雕完毕！", L"提示信息", NULL);
-				LdFinishFlag = TRUE;
-				LdCylinderPress(2);
-				Sleep(400);
-				LdCylinderPress(20);
-				return 0;
-			}
-			int length = TxTResult.size(); 
-			CurrentLdImei = TxTResult[length - 1];
-			SetDlgItemText(IDC_LdImei_EDIT, CurrentLdImei);	
-			UpdateWindow();
-		}
-		GetDlgItemText(IDC_LdImei_EDIT, CurrentLdImei);
-		if (CurrentLdImei > FImeiEnd)
-		{
-				SetRicheditText(_T("IMEI：")+CurrentLdImei+_T("在号段外，请检查是否已镭雕完此号段"), 1);
-				MessageBox(L"本次IMEI号段已全部镭雕完毕！", L"提示信息", NULL);
-				LdFinishFlag = TRUE;
-				LdCylinderPress(2);
-				Sleep(400);
-				LdCylinderPress(20);
-				return 0;
-		}
-		if (m_RelativeSN)//镭雕递增Sn时，判断是否超出号段
-		{
-			CString SnPre, Snlaf,endSN,justSN;
-   		    GetDlgItemText(IDC_LdSn_EDIT, SnPre);
-			justSN = SnPre.Right(SN2.GetLength());
-			if (justSN > SN3|| justSN<SN2)
-			{
-				SetRicheditText(_T("此SN号在号段外，请检查是否已镭雕完本号段"), 1);
-				MessageBox(L"本次SN号段已全部镭雕完毕！", L"提示信息", NULL);
-				LdFinishFlag = TRUE;
-				LdCylinderPress(2);
-				Sleep(400);
-				LdCylinderPress(20);
-				return 0;
-			}
-		}
-		//有无校验位要区分开
-		if (!m_NoCheckCodeCheckControl.GetCheck())
-		{
-			StrImeiLd = CreateIMEI15(CurrentLdImei);
-		}
-		else
-		{
-			StrImeiLd = CurrentLdImei;
-		}
-		if (m_ReLD)  //是重打
-		{
-			goto ISRELD;
-		}
-		if (BurnIsOpenFlag)
-		{
-			goto ISRELD;
-		}
-		BOOL IMEIRepairFlag = TRUE;
-		do
-		{
-			if (m_AutoCheckPrintVal)
-			{
-				if (adomanage.CheckLdIMEIExitLM(StrImeiLd) == 1 || adomanage.CheckLdIMEIExitPrint(StrImeiLd) == 1)
-				{
-					SetRicheditText(L"该IMEI：" + StrImeiLd + L"已镭雕过", 1);
-					UpdateWindow();
-					WritetoTxt(L"Laser_" + zhidan + _T("_"), L"该IMEI：" + StrImeiLd + L"已镭雕过\r\n");
-					if (m_LdRandom && !TxTResult.empty())
-					{
-						TxTResult.pop_back();
-						int length = TxTResult.size();
-						CurrentLdImei = TxTResult[length - 1];
-					}
-					else
-					{
-						unsigned long long imeiint = 0;
-						imeiint = _atoi64(CStringA(CurrentLdImei)) + IncreasingnumberInt;
-						CurrentLdImei = _ui64toa(imeiint, CT2A(CurrentLdImei), 10);
-					}
-					if (!m_NoCheckCodeCheckControl.GetCheck())
-					{
-						StrImeiLd = CreateIMEI15(CurrentLdImei);
-					}
-					else
-					{
-						StrImeiLd = CurrentLdImei;
-					}
-				}
-				else
-				{
-					SetDlgItemText(IDC_LdImei_EDIT, CurrentLdImei);
-					UpdateWindow();
-					//GetDlgItemText(IDC_LdImei_EDIT, CurrentLdImei);
-					if (!m_NoCheckCodeCheckControl.GetCheck())
-					{
-						StrImeiLd = CreateIMEI15(CurrentLdImei);
-					}
-					else
-					{
-						StrImeiLd = CurrentLdImei;
-					}
-					IMEIRepairFlag = FALSE;
-				}
-			}
-			else
-			{
-				if (adomanage.CheckLdIMEIExitLM(StrImeiLd) == 1)
-				{
-					SetRicheditText(L"该IMEI：" + StrImeiLd + L"已镭雕过", 1);
-					UpdateWindow();
-					WritetoTxt(L"Laser_" + zhidan + _T("_"), L"该IMEI：" + StrImeiLd + L"已镭雕过\r\n");
-					if (m_LdRandom && !TxTResult.empty())
-					{
-						TxTResult.pop_back();
-						int length = TxTResult.size();
-						CurrentLdImei = TxTResult[length - 1];
-					}
-					else
-					{
-						unsigned long long imeiint = 0;
-						imeiint = _atoi64(CStringA(CurrentLdImei)) + IncreasingnumberInt;
-						CurrentLdImei = _ui64toa(imeiint, CT2A(CurrentLdImei), 10);
-					}
-					if (!m_NoCheckCodeCheckControl.GetCheck())
-					{
-						StrImeiLd = CreateIMEI15(CurrentLdImei);
-					}
-					else
-					{
-						StrImeiLd = CurrentLdImei;
-					}
-				}
-				else
-				{
-					SetDlgItemText(IDC_LdImei_EDIT, CurrentLdImei);
-					UpdateWindow();
-					//GetDlgItemText(IDC_LdImei_EDIT, CurrentLdImei);
-					if (!m_NoCheckCodeCheckControl.GetCheck())
-					{
-						StrImeiLd = CreateIMEI15(CurrentLdImei);
-					}
-					else
-					{
-						StrImeiLd = CurrentLdImei;
-					}
-					IMEIRepairFlag = FALSE;
-				}
-			}
-			
-		} while (IMEIRepairFlag);
-ISRELD:
-			if (ChangeLdName(L"IMEI", StrImeiLd) == 0)
-			{
-				SetRicheditText(L"镭雕失败", 1);
-				LdFinishFlag = TRUE;
-				LdCylinderPress(2);
-				Sleep(400);
-				LdCylinderPress(20);
-				return 0;
-			}
-			if (m_RelativeSN)
-			{
-				GetDlgItemText(IDC_LdSn_EDIT, StrSnLd);
-				if (ChangeLdName(L"SN", StrSnLd) == 0)
-				{
-					SetRicheditText(L"镭雕失败", 1);
-					LdFinishFlag = TRUE;
-					LdCylinderPress(2);
-					Sleep(400);
-					LdCylinderPress(20);
-					return 0;
-				}
-			}
-			if (RelativeIMEI2 || RelativeIMEI3 || RelativeIMEI4 || RelativeIMEI5 || RelativeIMEI6 || RelativeIMEI7 || RelativeIMEI8 || RelativeIMEI9\
-				|| RelativeIMEI10 || RelativeIMEI11 || RelativeIMEI12 || RelativeIMEI13)
-			{
-				adomanage.GetRelativeIMEI2_IMEI13(StrImeiLd);
-				if (RelativeIMEI2)
-				{
-					if (ChangeLdName(L"IMEI2", adomanage.IMEI2Str) == 0) {
-						SetRicheditText(L"替换对象IMEI2时出现错误，镭雕失败", 1);
-						LdFinishFlag = TRUE;
-						LdCylinderPress(2);
-						Sleep(400);
-						LdCylinderPress(20);
-						return 0;
-					}
-				}
-				if (RelativeIMEI3)
-				{
-					if (ChangeLdName(L"IMEI3", adomanage.IMEI3Str) == 0) {
-						SetRicheditText(L"替换对象IMEI3时出现错误，镭雕失败", 1);
-						LdFinishFlag = TRUE;
-						LdCylinderPress(2);
-						Sleep(400);
-						LdCylinderPress(20);
-						return 0;
-					}
-				}
-				if (RelativeIMEI4)
-				{
-					if (ChangeLdName(L"IMEI4", adomanage.IMEI4Str) == 0) {
-						SetRicheditText(L"替换对象IMEI4时出现错误，镭雕失败", 1);
-						LdFinishFlag = TRUE;
-						LdCylinderPress(2);
-						Sleep(400);
-						LdCylinderPress(20);
-						return 0;
-					}
-				}
-				if (RelativeIMEI5)
-				{
-					if (ChangeLdName(L"IMEI5", adomanage.IMEI5Str) == 0) {
-						SetRicheditText(L"替换对象IMEI5时出现错误，镭雕失败", 1);
-						LdFinishFlag = TRUE;
-						LdCylinderPress(2);
-						Sleep(400);
-						LdCylinderPress(20);
-						return 0;
-					}
-				}
-				if (RelativeIMEI6)
-				{
-					if (ChangeLdName(L"IMEI6", adomanage.IMEI6Str) == 0) {
-						SetRicheditText(L"替换对象IMEI6时出现错误，镭雕失败", 1);
-						LdFinishFlag = TRUE;
-						LdCylinderPress(2);
-						Sleep(400);
-						LdCylinderPress(20);
-						return 0;
-					}
-				}
-				if (RelativeIMEI7)
-				{
-					if (ChangeLdName(L"IMEI7", adomanage.IMEI7Str) == 0) {
-						SetRicheditText(L"替换对象IMEI7时出现错误，镭雕失败", 1);
-						LdFinishFlag = TRUE;
-						LdCylinderPress(2);
-						Sleep(400);
-						LdCylinderPress(20);
-						return 0;
-					}
-				}
-				if (RelativeIMEI8)
-				{
-					if (ChangeLdName(L"IMEI8", adomanage.IMEI8Str) == 0) {
-						SetRicheditText(L"替换对象IMEI8时出现错误，镭雕失败", 1);
-						LdFinishFlag = TRUE;
-						LdCylinderPress(2);
-						Sleep(400);
-						LdCylinderPress(20);
-						return 0;
-					}
-				}
-				if (RelativeIMEI9)
-				{
-					if (ChangeLdName(L"IMEI9", adomanage.IMEI9Str) == 0) {
-						SetRicheditText(L"替换对象IMEI9时出现错误，镭雕失败", 1);
-						LdFinishFlag = TRUE;
-						LdCylinderPress(2);
-						Sleep(400);
-						LdCylinderPress(20);
-						return 0;
-					}
-				}
-				if (RelativeIMEI10)
-				{
-					if (ChangeLdName(L"IMEI10", adomanage.IMEI10Str) == 0) {
-						SetRicheditText(L"替换对象IMEI10时出现错误，镭雕失败", 1);
-						LdFinishFlag = TRUE;
-						LdCylinderPress(2);
-						Sleep(400);
-						LdCylinderPress(20);
-						return 0;
-					}
-				}
-				if (RelativeIMEI11)
-				{
-					if (ChangeLdName(L"IMEI11", adomanage.IMEI11Str) == 0) {
-						SetRicheditText(L"替换对象IMEI11时出现错误，镭雕失败", 1);
-						LdFinishFlag = TRUE;
-						LdCylinderPress(2);
-						Sleep(400);
-						LdCylinderPress(20);
-						return 0;
-					}
-				}
-				if (RelativeIMEI12)
-				{
-					if (ChangeLdName(L"IMEI12", adomanage.IMEI12Str) == 0) {
-						SetRicheditText(L"替换对象IMEI12时出现错误，镭雕失败", 1);
-						LdFinishFlag = TRUE;
-						LdCylinderPress(2);
-						Sleep(400);
-						LdCylinderPress(20);
-						return 0;
-					}
-				}
-				if (RelativeIMEI13)
-				{
-					if (ChangeLdName(L"IMEI13", adomanage.IMEI13Str) == 0) {
-						SetRicheditText(L"替换对象IMEI13时出现错误，镭雕失败", 1);
-						LdFinishFlag = TRUE;
-						LdCylinderPress(2);
-						Sleep(400);
-						LdCylinderPress(20);
-						return 0;
-					}
-				}
-			}
-		SetRicheditText(L"镭雕中。。。", 0);
-		char szIpAdd[256];
-		USES_CONVERSION; //定义后才能使用T2A
-		sprintf_s(szIpAdd, 256, "%s", T2A(StrImeiLd));
-		send(clientSock, szIpAdd, 256, 0);
-		DllFlag = markezd.lmc1_Mark(TRUE);
-		DllStr.Format(_T("%d"), DllFlag);
-		if (DllFlag == 0)
-		{
-			SetRicheditText(L"IMEI号:" + StrImeiLd + L"已镭雕完成", 0);
-			WritetoTxt(L"Laser_" + zhidan + _T("_"), L"IMEI号:" + StrImeiLd + L"已镭雕完成\r\n");
-			//adomanage.UpdateLdData(StrImeiLd, StrSnLd);三合一用
-			if (m_ReLD)
-			{
-				adomanage.UpdateReLdData(StrImeiLd);
-			}
-			else
-			{
-				adomanage.InsertLdData(StrImeiLd, ComputerIp, zhidan, LDsoftmodel, LDversion);
-			}
-			LdToCompare = StrImeiLd;
-			if (m_LdRandom && !TxTResult.empty())
-			{
-				TxTResult.pop_back();
-			}
-			else
-			{
-				//						//镭雕完记录数据后IMEI号+1
-				unsigned long long imeiint = 0;
-				imeiint = _atoi64(CStringA(CurrentLdImei)) + IncreasingnumberInt;
-				CurrentLdImei = _ui64toa(imeiint, CT2A(CurrentLdImei), 10);
-				SetDlgItemText(IDC_LdImei_EDIT, CurrentLdImei);
-				if (adomanage.CheckLdzhidanExit(zhidan) == 0)
-				{
-					adomanage.insertLdSnAndImei(StrSnLd, CurrentLdImei, zhidan);
-				}
-				else
-				{
-					adomanage.UpdateLdSnAndImei(StrSnLd, CurrentLdImei, zhidan);
-				}
-			}
-			if (m_RelativeSN)//镭雕完后SN号+1
-			{
-				unsigned long long snint = 0;
-				CString SnPre, Snlaf, lengthstr;
-				int length = SN2.GetLength();
-				lengthstr.Format(_T("%d"), length);
-				SnPre = StrSnLd.Left(StrSnLd.GetLength() - SN2.GetLength());
-				Snlaf = StrSnLd.Right(SN2.GetLength());
-				snint = _ttoi(Snlaf) + IncreasingnumberInt;
-				Snlaf.Format(_T("%0") + lengthstr + _T("d"), snint);
-				StrSnLd = SnPre + Snlaf;
-				SetDlgItemText(IDC_LdSn_EDIT, StrSnLd);
-				adomanage.UpdateLdSn(StrSnLd, zhidan);
-			}
-		}
-		else
-		{
-			SetRicheditText(L"镭雕失败，错误代码" + DllStr, 1);
-			WritetoTxt(L"Laser_" + zhidan + _T("_"), L"镭雕失败，错误代码" + DllStr + L"\r\n");
-			/*DllFlag = markezd.lmc1_Mark(FALSE);
-			CString stt;
-			stt.Format(L"%d", DllFlag);
-			SetRicheditText(stt,1);*/
-			adomanage.CloseAll();
+			SetRicheditText(_T("本TXT文件中的IMEI已全部镭雕完毕"), 0);
+			MessageBox(L"本TXT文件中的IMEI已全部镭雕完毕！", L"提示信息", NULL);
 			LdFinishFlag = TRUE;
 			LdCylinderPress(2);
 			Sleep(400);
 			LdCylinderPress(20);
+			LdIndex++;
 			return 0;
-		}		
-		adomanage.CloseAll();
-		SetDlgItemText(IDC_NEXTCOMPAREIMEI, LdToCompare);
+		}
+		int length = TxTResult.size();
+		CurrentLdImei = TxTResult[length - 1];
+		SetDlgItemText(IDC_LdImei_EDIT, CurrentLdImei);
 		UpdateWindow();
+	}
+	GetDlgItemText(IDC_LdImei_EDIT, CurrentLdImei);
+	if (CurrentLdImei > FImeiEnd)
+	{
+		SetRicheditText(_T("IMEI：") + CurrentLdImei + _T("在号段外，请检查是否已镭雕完此号段"), 1);
+		MessageBox(L"本次IMEI号段已全部镭雕完毕！", L"提示信息", NULL);
 		LdFinishFlag = TRUE;
-		LdCylinderPress(1);
+		LdCylinderPress(2);
 		Sleep(400);
-		LdCylinderPress(10);
-		return 1;
+		LdCylinderPress(20);
+		LdIndex++;
+		return 0;
+	}
+	if (m_RelativeSN)//镭雕递增Sn时，判断是否超出号段
+	{
+		CString SnPre, Snlaf, endSN, justSN;
+		GetDlgItemText(IDC_LdSn_EDIT, SnPre);
+		justSN = SnPre.Right(SN2.GetLength());
+		if (justSN > SN3 || justSN < SN2)
+		{
+			SetRicheditText(_T("此SN号在号段外，请检查是否已镭雕完本号段"), 1);
+			MessageBox(L"本次SN号段已全部镭雕完毕！", L"提示信息", NULL);
+			LdFinishFlag = TRUE;
+			LdCylinderPress(2);
+			Sleep(400);
+			LdCylinderPress(20);
+			LdIndex++;
+			return 0;
+		}
+	}
+	//有无校验位要区分开
+	if (!m_NoCheckCodeCheckControl.GetCheck())
+	{
+		StrImeiLd = CreateIMEI15(CurrentLdImei);
+	}
+	else
+	{
+		StrImeiLd = CurrentLdImei;
+	}
+	if (m_ReLD)  //是重打
+	{
+		goto ISRELD;
+	}
+	if (BurnIsOpenFlag)
+	{
+		goto ISRELD;
+	}
+	BOOL IMEIRepairFlag = TRUE;
+	do
+	{
+		if (m_AutoCheckPrintVal)
+		{
+			if (adomanage.CheckLdIMEIExitLM(StrImeiLd) == 1 || adomanage.CheckLdIMEIExitPrint(StrImeiLd) == 1)
+			{
+				SetRicheditText(L"该IMEI：" + StrImeiLd + L"已镭雕过，自动过滤", 1);
+				UpdateWindow();
+				WritetoTxt(L"Laser_" + zhidan + _T("_"), L"该IMEI：" + StrImeiLd + L"已镭雕过\r\n");
+				if (m_LdRandom && !TxTResult.empty())
+				{
+					TxTResult.pop_back();
+					int length = TxTResult.size();
+					CurrentLdImei = TxTResult[length - 1];
+				}
+				else
+				{
+					unsigned long long imeiint = 0;
+					imeiint = _atoi64(CStringA(CurrentLdImei)) + IncreasingnumberInt;
+					CurrentLdImei = _ui64toa(imeiint, CT2A(CurrentLdImei), 10);
+				}
+				if (!m_NoCheckCodeCheckControl.GetCheck())
+				{
+					StrImeiLd = CreateIMEI15(CurrentLdImei);
+				}
+				else
+				{
+					StrImeiLd = CurrentLdImei;
+				}
+			}
+			else
+			{
+				SetDlgItemText(IDC_LdImei_EDIT, CurrentLdImei);
+				UpdateWindow();
+				//GetDlgItemText(IDC_LdImei_EDIT, CurrentLdImei);
+				if (!m_NoCheckCodeCheckControl.GetCheck())
+				{
+					StrImeiLd = CreateIMEI15(CurrentLdImei);
+				}
+				else
+				{
+					StrImeiLd = CurrentLdImei;
+				}
+				IMEIRepairFlag = FALSE;
+			}
+		}
+		else
+		{
+			if (adomanage.CheckLdIMEIExitLM(StrImeiLd) == 1)
+			{
+				SetRicheditText(L"该IMEI：" + StrImeiLd + L"已镭雕过，自动过滤", 1);
+				UpdateWindow();
+				WritetoTxt(L"Laser_" + zhidan + _T("_"), L"该IMEI：" + StrImeiLd + L"已镭雕过\r\n");
+				if (m_LdRandom && !TxTResult.empty())
+				{
+					TxTResult.pop_back();
+					int length = TxTResult.size();
+					CurrentLdImei = TxTResult[length - 1];
+				}
+				else
+				{
+					unsigned long long imeiint = 0;
+					imeiint = _atoi64(CStringA(CurrentLdImei)) + IncreasingnumberInt;
+					CurrentLdImei = _ui64toa(imeiint, CT2A(CurrentLdImei), 10);
+				}
+				if (!m_NoCheckCodeCheckControl.GetCheck())
+				{
+					StrImeiLd = CreateIMEI15(CurrentLdImei);
+				}
+				else
+				{
+					StrImeiLd = CurrentLdImei;
+				}
+			}
+			else
+			{
+				SetDlgItemText(IDC_LdImei_EDIT, CurrentLdImei);
+				UpdateWindow();
+				//GetDlgItemText(IDC_LdImei_EDIT, CurrentLdImei);
+				if (!m_NoCheckCodeCheckControl.GetCheck())
+				{
+					StrImeiLd = CreateIMEI15(CurrentLdImei);
+				}
+				else
+				{
+					StrImeiLd = CurrentLdImei;
+				}
+				IMEIRepairFlag = FALSE;
+			}
+		}
+
+	} while (IMEIRepairFlag);
+ISRELD:
+	if (ChangeLdName(L"IMEI", StrImeiLd) == 0)
+	{
+		SetRicheditText(L"镭雕失败", 1);
+		LdFinishFlag = TRUE;
+		LdCylinderPress(2);
+		Sleep(400);
+		LdCylinderPress(20);
+		LdIndex++;
+		return 0;
+	}
+	if (m_RelativeSN)
+	{
+		GetDlgItemText(IDC_LdSn_EDIT, StrSnLd);
+		if (ChangeLdName(L"SN", StrSnLd) == 0)
+		{
+			SetRicheditText(L"镭雕失败", 1);
+			LdFinishFlag = TRUE;
+			LdCylinderPress(2);
+			Sleep(400);
+			LdCylinderPress(20);
+			LdIndex++;
+			return 0;
+		}
+	}
+	if (RelativeIMEI2 || RelativeIMEI3 || RelativeIMEI4 || RelativeIMEI5 || RelativeIMEI6 || RelativeIMEI7 || RelativeIMEI8 || RelativeIMEI9\
+		|| RelativeIMEI10 || RelativeIMEI11 || RelativeIMEI12 || RelativeIMEI13)
+	{
+		adomanage.GetRelativeIMEI2_IMEI13(StrImeiLd);
+		if (RelativeIMEI2)
+		{
+			if (ChangeLdName(L"IMEI2", adomanage.IMEI2Str) == 0) {
+				SetRicheditText(L"替换对象IMEI2时出现错误，镭雕失败", 1);
+				LdFinishFlag = TRUE;
+				LdCylinderPress(2);
+				Sleep(400);
+				LdCylinderPress(20);
+				LdIndex++;
+				return 0;
+			}
+		}
+		if (RelativeIMEI3)
+		{
+			if (ChangeLdName(L"IMEI3", adomanage.IMEI3Str) == 0) {
+				SetRicheditText(L"替换对象IMEI3时出现错误，镭雕失败", 1);
+				LdFinishFlag = TRUE;
+				LdCylinderPress(2);
+				Sleep(400);
+				LdCylinderPress(20);
+				LdIndex++;
+				return 0;
+			}
+		}
+		if (RelativeIMEI4)
+		{
+			if (ChangeLdName(L"IMEI4", adomanage.IMEI4Str) == 0) {
+				SetRicheditText(L"替换对象IMEI4时出现错误，镭雕失败", 1);
+				LdFinishFlag = TRUE;
+				LdCylinderPress(2);
+				Sleep(400);
+				LdCylinderPress(20);
+				LdIndex++;
+				return 0;
+			}
+		}
+		if (RelativeIMEI5)
+		{
+			if (ChangeLdName(L"IMEI5", adomanage.IMEI5Str) == 0) {
+				SetRicheditText(L"替换对象IMEI5时出现错误，镭雕失败", 1);
+				LdFinishFlag = TRUE;
+				LdCylinderPress(2);
+				Sleep(400);
+				LdCylinderPress(20);
+				LdIndex++;
+				return 0;
+			}
+		}
+		if (RelativeIMEI6)
+		{
+			if (ChangeLdName(L"IMEI6", adomanage.IMEI6Str) == 0) {
+				SetRicheditText(L"替换对象IMEI6时出现错误，镭雕失败", 1);
+				LdFinishFlag = TRUE;
+				LdCylinderPress(2);
+				Sleep(400);
+				LdCylinderPress(20);
+				LdIndex++;
+				return 0;
+			}
+		}
+		if (RelativeIMEI7)
+		{
+			if (ChangeLdName(L"IMEI7", adomanage.IMEI7Str) == 0) {
+				SetRicheditText(L"替换对象IMEI7时出现错误，镭雕失败", 1);
+				LdFinishFlag = TRUE;
+				LdCylinderPress(2);
+				Sleep(400);
+				LdCylinderPress(20);
+				LdIndex++;
+				return 0;
+			}
+		}
+		if (RelativeIMEI8)
+		{
+			if (ChangeLdName(L"IMEI8", adomanage.IMEI8Str) == 0) {
+				SetRicheditText(L"替换对象IMEI8时出现错误，镭雕失败", 1);
+				LdFinishFlag = TRUE;
+				LdCylinderPress(2);
+				Sleep(400);
+				LdCylinderPress(20);
+				LdIndex++;
+				return 0;
+			}
+		}
+		if (RelativeIMEI9)
+		{
+			if (ChangeLdName(L"IMEI9", adomanage.IMEI9Str) == 0) {
+				SetRicheditText(L"替换对象IMEI9时出现错误，镭雕失败", 1);
+				LdFinishFlag = TRUE;
+				LdCylinderPress(2);
+				Sleep(400);
+				LdCylinderPress(20);
+				LdIndex++;
+				return 0;
+			}
+		}
+		if (RelativeIMEI10)
+		{
+			if (ChangeLdName(L"IMEI10", adomanage.IMEI10Str) == 0) {
+				SetRicheditText(L"替换对象IMEI10时出现错误，镭雕失败", 1);
+				LdFinishFlag = TRUE;
+				LdCylinderPress(2);
+				Sleep(400);
+				LdCylinderPress(20);
+				LdIndex++;
+				return 0;
+			}
+		}
+		if (RelativeIMEI11)
+		{
+			if (ChangeLdName(L"IMEI11", adomanage.IMEI11Str) == 0) {
+				SetRicheditText(L"替换对象IMEI11时出现错误，镭雕失败", 1);
+				LdFinishFlag = TRUE;
+				LdCylinderPress(2);
+				Sleep(400);
+				LdCylinderPress(20);
+				LdIndex++;
+				return 0;
+			}
+		}
+		if (RelativeIMEI12)
+		{
+			if (ChangeLdName(L"IMEI12", adomanage.IMEI12Str) == 0) {
+				SetRicheditText(L"替换对象IMEI12时出现错误，镭雕失败", 1);
+				LdFinishFlag = TRUE;
+				LdCylinderPress(2);
+				Sleep(400);
+				LdCylinderPress(20);
+				LdIndex++;
+				return 0;
+			}
+		}
+		if (RelativeIMEI13)
+		{
+			if (ChangeLdName(L"IMEI13", adomanage.IMEI13Str) == 0) {
+				SetRicheditText(L"替换对象IMEI13时出现错误，镭雕失败", 1);
+				LdFinishFlag = TRUE;
+				LdCylinderPress(2);
+				Sleep(400);
+				LdCylinderPress(20);
+				LdIndex++;
+				return 0;
+			}
+		}
+	}
+	SetRicheditText(L"镭雕中。。。", 0);
+	char szIpAdd[256];
+	USES_CONVERSION; //定义后才能使用T2A
+	sprintf_s(szIpAdd, 256, "%s", T2A(StrImeiLd));
+	send(clientSock, szIpAdd, 256, 0);
+	DllFlag = markezd.lmc1_Mark(TRUE);
+	DllStr.Format(_T("%d"), DllFlag);
+	if (DllFlag == 0)
+	{
+		SetRicheditText(L"IMEI号:" + StrImeiLd + L"已镭雕完成", 0);
+		WritetoTxt(L"Laser_" + zhidan + _T("_"), L"IMEI号:" + StrImeiLd + L"已镭雕完成\r\n");
+		//adomanage.UpdateLdData(StrImeiLd, StrSnLd);三合一用
+		if (m_ReLD)
+		{
+			adomanage.UpdateReLdData(StrImeiLd);
+		}
+		else
+		{
+			adomanage.InsertLdData(StrImeiLd, ComputerIp, zhidan, LDsoftmodel, LDversion);
+		}
+		LdToCompare = StrImeiLd;
+		if (m_LdRandom && !TxTResult.empty())
+		{
+			if (adomanage.CheckLdzhidanExit(zhidan) == 0)
+			{
+				adomanage.insertLdSnAndImei(StrSnLd, CurrentLdImei, zhidan);
+			}
+			else
+			{
+				adomanage.UpdateLdSnAndImei(StrSnLd, CurrentLdImei, zhidan);
+			}
+			TxTResult.pop_back();
+		}
+		else
+		{
+			//						//镭雕完记录数据后IMEI号+1
+			unsigned long long imeiint = 0;
+			imeiint = _atoi64(CStringA(CurrentLdImei)) + IncreasingnumberInt;
+			CurrentLdImei = _ui64toa(imeiint, CT2A(CurrentLdImei), 10);
+			SetDlgItemText(IDC_LdImei_EDIT, CurrentLdImei);
+			if (adomanage.CheckLdzhidanExit(zhidan) == 0)
+			{
+				adomanage.insertLdSnAndImei(StrSnLd, CurrentLdImei, zhidan);
+			}
+			else
+			{
+				adomanage.UpdateLdSnAndImei(StrSnLd, CurrentLdImei, zhidan);
+			}
+		}
+		if (m_RelativeSN)//镭雕完后SN号+1
+		{
+			unsigned long long snint = 0;
+			CString SnPre, Snlaf, lengthstr;
+			int length = SN2.GetLength();
+			lengthstr.Format(_T("%d"), length);
+			SnPre = StrSnLd.Left(StrSnLd.GetLength() - SN2.GetLength());
+			Snlaf = StrSnLd.Right(SN2.GetLength());
+			snint = _ttoi(Snlaf) + IncreasingnumberInt;
+			Snlaf.Format(_T("%0") + lengthstr + _T("d"), snint);
+			StrSnLd = SnPre + Snlaf;
+			SetDlgItemText(IDC_LdSn_EDIT, StrSnLd);
+			adomanage.UpdateLdSn(StrSnLd, zhidan);
+		}
+	}
+	else
+	{
+		SetRicheditText(L"镭雕失败，错误代码" + DllStr, 1);
+		WritetoTxt(L"Laser_" + zhidan + _T("_"), L"镭雕失败，错误代码" + DllStr + L"\r\n");
+		/*DllFlag = markezd.lmc1_Mark(FALSE);
+		CString stt;
+		stt.Format(L"%d", DllFlag);
+		SetRicheditText(stt,1);*/
+		adomanage.CloseAll();
+		LdFinishFlag = TRUE;
+		LdCylinderPress(2);
+		Sleep(400);
+		LdCylinderPress(20);
+		LdIndex++;
+		return 0;
+	}
+	adomanage.CloseAll();
+	//SetDlgItemText(IDC_NEXTCOMPAREIMEI, LdToCompare);
+	LdVec.push_back(LdToCompare);
+	UpdateWindow();
+	LdFinishFlag = TRUE;
+	LdCylinderPress(1);
+	Sleep(400);
+	LdCylinderPress(10);
+	LdIndex++;
+	return 1;
 }
 
 //替换指定对象名称的值
@@ -1374,12 +1404,12 @@ int CMFC_LaserDlg::ChangeLdName(CString LdVariable, CString strld)
 	DllStr.Format(_T("%d"), DllFlag);
 	if (DllFlag == 0)
 	{
-		
+
 	}
 	else
 	{
-		SetRicheditText(L"替换对象的值失败，错误代码" + DllStr, 1);
-		WritetoTxt(L"Laser_"+zhidan+_T("_"), L"替换对象的值失败，错误代码" + DllStr+L"\r\n");
+		SetRicheditText(L"替换对象" + LdVariable + L"的值失败，错误代码" + DllStr, 1);
+		WritetoTxt(L"Laser_" + zhidan + _T("_"), L"替换对象的值失败，错误代码" + DllStr + L"\r\n");
 		return 0;
 	}
 	return 1;
@@ -1388,7 +1418,7 @@ int CMFC_LaserDlg::ChangeLdName(CString LdVariable, CString strld)
 //镭雕一次
 void CMFC_LaserDlg::OnBnClickedLdoncetimeButton()
 {
-	
+
 	LdCore();
 	// TODO:  在此添加控件通知处理程序代码
 }
@@ -1401,16 +1431,16 @@ void CMFC_LaserDlg::OnBnClickedStartlaserButton()
 	GetDlgItem(IDC_StartLaser_BUTTON)->EnableWindow(FALSE);
 	Sleep(200);
 	GetDlgItemText(IDC_StartLaser_BUTTON, buttontext);
-	if (buttontext=="开启旋转镭雕模式")
+	if (buttontext == "开启旋转镭雕模式")
 	{
 		GetDlgItem(IDC_LdOnceTime_BUTTON)->EnableWindow(FALSE);
 		SetDlgItemText(IDC_StartLaser_BUTTON, _T("关闭旋转镭雕模式"));
 		//开启子线程
-		if(ThreadReadLdPort==NULL)
-		   ThreadReadLdPort = AfxBeginThread(ReadLdPortThread, this, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
+		if (ThreadReadLdPort == NULL)
+			ThreadReadLdPort = AfxBeginThread(ReadLdPortThread, this, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
 		m_LdPortRun = true;
 		LDIsOpenFlag = TRUE;
-		
+
 		GetDlgItem(IDC_JDQ_COMBO)->EnableWindow(FALSE);
 		GetDlgItem(IDC_OPENRELAY)->EnableWindow(FALSE);
 		GetDlgItem(IDC_StartLaser_BUTTON)->EnableWindow(TRUE);
@@ -1466,25 +1496,17 @@ UINT ReadLdPortThread(LPVOID pParam)
 	{
 		while (m_LdPortRun)
 		{
-			do
+			if (readFromClient.Find(L"TCP") != -1)
 			{
-				if (!m_LdPortRun)
-				{
-					break;
-				}
-				if (readFromClient.Find(L"TCP") != -1)
-				{
-					dlg->myLdport.SetWindowTextW(L"1");
-					dlg->LdCore();
-					readFromClient = L"";
-					dlg->myLdport.SetWindowTextW(L"0");
-					break;
-				}
-				Sleep(100);
-			} while (true);
+				dlg->myLdport.SetWindowTextW(L"1");
+				dlg->LdCore();
+				readFromClient = L"";
+				dlg->myLdport.SetWindowTextW(L"0");
+			}
+			Sleep(100);
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -1508,13 +1530,13 @@ void CMFC_LaserDlg::LdCylinderPress(int argument)
 		if (bWriteStat)
 		{
 			SetRicheditText(L"发送指令成功" + strcommand, 0);
-		}		
+		}
 		else
 		{
 			SetRicheditText(L"发送指令失败" + strcommand, 1);
-			DWORD ErrorNum =  GetLastError();
-			ErrorNumStr.Format(L"%d",ErrorNum);
-			SetRicheditText(L"错误码："+ErrorNumStr,1);
+			DWORD ErrorNum = GetLastError();
+			ErrorNumStr.Format(L"%d", ErrorNum);
+			SetRicheditText(L"错误码：" + ErrorNumStr, 1);
 		}
 		break;
 	case 2:
@@ -1813,6 +1835,7 @@ void CMFC_LaserDlg::OnBnClickedBurningconnButton()
 	//	MessageBox(L"请先获取测试指令",L"提示");
 	//	return;
 	//}
+	UpdateData(TRUE);
 	GetCommPort((CComboBox*)GetDlgItem(IDC_BurningPort_COMBO), Port1No);//先获取当前串口号
 	//GetCommPort((CComboBox*)GetDlgItem(IDC_JDQ_COMBO), Port3No);//先获取当前串口号
 	//if (Port1No == Port3No){
@@ -1837,7 +1860,7 @@ void CMFC_LaserDlg::OnBnClickedBurningconnButton()
 		}
 		ShowBurningMsg(L"烧写串口初始化成功!", 0);
 		BurnIsOpenFlag = TRUE;
-		WritetoTxt(L"Burn_"+zhidan+_T("_"),L"打开烧写串口成功\r\n");
+		WritetoTxt(L"Burn_" + zhidan + _T("_"), L"打开烧写串口成功\r\n");
 		//打开继电器串口
 		/*Port3handler = InitCom1(Port3No);
 		if (Port3handler == NULL)
@@ -1846,6 +1869,8 @@ void CMFC_LaserDlg::OnBnClickedBurningconnButton()
 			return;
 		}
 		ShowBurningMsg(L"继电器串口初始化成功!");	*/
+		int MyDataCount = 0;
+		MyDataCount = _ttoi64(m_EndIMEIVal) - _ttoi64(m_BurningEditVal);
 		WriteThread = AfxBeginThread(SendDBCommand, this, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
 		m_BurningConrtolFlag = true;
 		BurnLastSendTestFlag = true;
@@ -1854,7 +1879,7 @@ void CMFC_LaserDlg::OnBnClickedBurningconnButton()
 		GetDlgItem(IDC_BurningPort_COMBO)->EnableWindow(false);
 		GetDlgItem(IDC_COMBO3)->EnableWindow(false);
 		GetDlgItem(IDC_BUTTON3)->EnableWindow(false);
-		
+
 		//GetDlgItem(IDC_BurningScanningGun_Button)->EnableWindow(false);
 		GetDlgItem(IDC_NoNet_CHECK)->EnableWindow(false);
 		//GetDlgItem(IDC_JDQ_COMBO)->EnableWindow(false);
@@ -1892,10 +1917,10 @@ void CMFC_LaserDlg::OnBnClickedBurningconnButton()
 }
 
 //显示烧写日志
-int CMFC_LaserDlg::ShowBurningMsg(CString strMsg,int MsgNum)
+int CMFC_LaserDlg::ShowBurningMsg(CString strMsg, int MsgNum)
 {
 	CString str = GetTime() + _T("\r\n ");
-	str += strMsg+_T("\r\n");
+	str += strMsg + _T("\r\n");
 	m_BurnLog.SetSel(-1, -1);
 	CHARFORMAT   cf{ sizeof(cf) };//设置这个结构来改变你想要的文字的颜色等属性
 	cf.dwMask = CFM_COLOR | CFM_UNDERLINE | CFM_BOLD | CFM_SIZE | CFM_FACE;//这个目前还没解析完成，但如果要输出不同颜色的字体一定要使用richedit
@@ -1904,7 +1929,7 @@ int CMFC_LaserDlg::ShowBurningMsg(CString strMsg,int MsgNum)
 	switch (MsgNum)
 	{
 	case 0:
-		m_BurnLog.ReplaceSel(GetTime() + _T("\r\n  ") + strMsg + _T("\r\n"));	
+		m_BurnLog.ReplaceSel(GetTime() + _T("\r\n  ") + strMsg + _T("\r\n"));
 		break;
 	case 1:
 		m_BurnLog.SetSelectionCharFormat(cf);
@@ -1930,7 +1955,7 @@ CString CMFC_LaserDlg::ReadFromBurningPort()
 	char szMsg[255] = { 0 };
 	char p_StrBcd[255] = { 0 };
 	bReadStat = ReadFile(Port1handler, str, 199, &readreal, 0);
-	if (bReadStat){
+	if (bReadStat) {
 		strread = str;
 	}
 	else
@@ -1938,14 +1963,14 @@ CString CMFC_LaserDlg::ReadFromBurningPort()
 		strread = "";
 	}
 	return strread;
-}	
+}
 
 //PLC交互
 CString CMFC_LaserDlg::ReadFromPLCPort()
 {
 	//串口变量
-	char str[256] = {0};
-	char destStr[256] = {0};
+	char str[256] = { 0 };
+	char destStr[256] = { 0 };
 	memset(str, 0, sizeof(str) / sizeof(str[0]));
 	int length;
 	DWORD readreal = 0;
@@ -1954,7 +1979,7 @@ CString CMFC_LaserDlg::ReadFromPLCPort()
 	char szMsg[255] = { 0 };
 	char p_StrBcd[255] = { 0 };
 	bReadStat = ReadFile(Port3handler, str, 199, &readreal, 0);
-	if (bReadStat) 
+	if (bReadStat)
 	{
 		Sdk_Str2BcdStr(str, 6, destStr);
 		strread = destStr;
@@ -2033,7 +2058,7 @@ int CMFC_LaserDlg::checkCompareResult(CString IMEI)
 }
 
 //插入烧写信息
-BOOL CMFC_LaserDlg::InsertBurningMes(CString zhidan, CString Imei, CString ComputerIp, CString burningresult,CString Rid)
+BOOL CMFC_LaserDlg::InsertBurningMes(CString zhidan, CString Imei, CString ComputerIp, CString burningresult, CString Rid)
 {
 	ADOManage adomanageInsert;
 	adomanageInsert.ConnSQL();
@@ -2043,7 +2068,7 @@ BOOL CMFC_LaserDlg::InsertBurningMes(CString zhidan, CString Imei, CString Compu
 }
 
 //更新烧写信息
-BOOL CMFC_LaserDlg::UpdateBurningMes(CString Imei, CString Rid,CString computerIp,CString BurnResult)
+BOOL CMFC_LaserDlg::UpdateBurningMes(CString Imei, CString Rid, CString computerIp, CString BurnResult)
 {
 	ADOManage adomanageInsert;
 	adomanageInsert.ConnSQL();
@@ -2075,11 +2100,11 @@ void CMFC_LaserDlg::UpdataBurningMes(CString zhidan, CString Imei)
 void CMFC_LaserDlg::OnBnClickedBurningscanninggunButton()
 {
 	// TODO:  在此添加控件通知处理程序代码
-	
+
 	CString scanninggunButtonText;
-	GetDlgItemText(IDC_BurningScanningGun_Button, scanninggunButtonText); 
+	GetDlgItemText(IDC_BurningScanningGun_Button, scanninggunButtonText);
 	//GetCommPort((CComboBox*)GetDlgItem(IDC_BurningPort_COMBO), Port1No);//先获取当前串口号
-	if (scanninggunButtonText == "进入扫描枪模式"){
+	if (scanninggunButtonText == "进入扫描枪模式") {
 		//判断串口有没有开启成功
 		/*Port1handler = InitCom(Port1No);
 		if (Port1handler == NULL)
@@ -2089,20 +2114,20 @@ void CMFC_LaserDlg::OnBnClickedBurningscanninggunButton()
 		}
 		ShowBurningMsg(L"串口初始化成功!", 0);*/
 		EnterScanFlag = TRUE;
-	/*	GetDlgItem(IDC_BurningConn_BUTTON)->EnableWindow(false);
-		GetDlgItem(IDC_BurningPort_COMBO)->EnableWindow(false);
-		GetDlgItem(IDC_BurningImei_EDIT)->EnableWindow(true);
-		GetDlgItem(IDC_SendCommand1_EDIT)->EnableWindow(false);
-		GetDlgItem(IDC_SendCommand2_EDIT)->EnableWindow(false);
-		GetDlgItem(IDC_ReciveCommand_EDIT)->EnableWindow(false);*/
-		//GetDlgItem(IDC_NoNet_CHECK)->EnableWindow(false);
+		/*	GetDlgItem(IDC_BurningConn_BUTTON)->EnableWindow(false);
+			GetDlgItem(IDC_BurningPort_COMBO)->EnableWindow(false);
+			GetDlgItem(IDC_BurningImei_EDIT)->EnableWindow(true);
+			GetDlgItem(IDC_SendCommand1_EDIT)->EnableWindow(false);
+			GetDlgItem(IDC_SendCommand2_EDIT)->EnableWindow(false);
+			GetDlgItem(IDC_ReciveCommand_EDIT)->EnableWindow(false);*/
+			//GetDlgItem(IDC_NoNet_CHECK)->EnableWindow(false);
 		GetDlgItem(IDC_BurningImei_EDIT)->EnableWindow(true);
 		m_BurningImeiEdit.SetFocus();
 		SetDlgItemText(IDC_BurningScanningGun_Button, L"关闭扫描枪模式");
 		SetDlgItemText(IDC_BurningRemind_STATIC, L"就绪");
 		SetDlgItemText(IDC_BurningImei_EDIT, L"");
 	}
-	else{
+	else {
 		/*if (!CloseCom(Port1handler))
 		{
 			ShowBurningMsg(L"关闭串口失败", 1);
@@ -2137,7 +2162,7 @@ void CMFC_LaserDlg::OnDropdownCompareportCombo()
 }
 
 //显示对比信息
-int CMFC_LaserDlg::ShowCompareMsg(CString strMsg,int MsgNum)
+int CMFC_LaserDlg::ShowCompareMsg(CString strMsg, int MsgNum)
 {
 	CString str = GetTime() + _T("\r\n ");
 	str += strMsg + _T("\r\n");
@@ -2174,7 +2199,7 @@ void CMFC_LaserDlg::OnBnClickedCompareconnButton()
 	GetCommPort((CComboBox*)GetDlgItem(IDC_ComparePort_COMBO), Port2No);//先获取当前串口号
 	CString CompareConnButtonText;
 	GetDlgItem(IDC_CompareConn_BUTTON)->GetWindowText(CompareConnButtonText);
-	if (CompareConnButtonText == "一键开始"){
+	if (CompareConnButtonText == "一键开始") {
 		//判断串口有没有开启成功
 		if (StationValVector.size() == 0)
 		{
@@ -2187,15 +2212,15 @@ void CMFC_LaserDlg::OnBnClickedCompareconnButton()
 			SetDlgItemText(IDC_CompareRemind_STATIC, L"打开串口失败");
 			return;
 		}
-			ShowCompareMsg(L"对比串口初始化成功",0);
-			WriteComThread = AfxBeginThread(SendComparePortThread, this, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
-			m_CompareConrtolFlag = true;
-			SetDlgItemText(IDC_CompareRemind_STATIC, L"就绪");
-			WritetoTxt(L"Compare_", L"打开对比串口成功\r\n");
-			SetDlgItemText(IDC_CompareConn_BUTTON, TEXT("一键关闭"));
-			GetDlgItem(IDC_ComparePort_COMBO)->EnableWindow(false);
-			GetDlgItem(IDC_COMBO4)->EnableWindow(false);
-			GetDlgItem(IDC_BUTTON5)->EnableWindow(false);			
+		ShowCompareMsg(L"对比串口初始化成功", 0);
+		WriteComThread = AfxBeginThread(SendComparePortThread, this, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
+		m_CompareConrtolFlag = true;
+		SetDlgItemText(IDC_CompareRemind_STATIC, L"就绪");
+		WritetoTxt(L"Compare_", L"打开对比串口成功\r\n");
+		SetDlgItemText(IDC_CompareConn_BUTTON, TEXT("一键关闭"));
+		GetDlgItem(IDC_ComparePort_COMBO)->EnableWindow(false);
+		GetDlgItem(IDC_COMBO4)->EnableWindow(false);
+		GetDlgItem(IDC_BUTTON5)->EnableWindow(false);
 	}
 	else
 	{
@@ -2204,7 +2229,7 @@ void CMFC_LaserDlg::OnBnClickedCompareconnButton()
 			MessageBox(L"关闭对比串口失败", L"提示信息", NULL);
 			return;
 		}
-		ShowCompareMsg(L"关闭对比串口成功",0);	
+		ShowCompareMsg(L"关闭对比串口成功", 0);
 		WritetoTxt(L"Compare_", L"关闭对比串口成功\r\n");
 		CompareLastSendTestFlag = false;
 		m_CompareConrtolFlag = false; //停止线程
@@ -2265,10 +2290,11 @@ UINT SendComparePortThread(LPVOID lpParam)
 				dlg->SetDlgItemText(IDC_CompareRemind_STATIC, _T("对比中"));
 				if (LDIsOpenFlag)
 				{
-					dlg->GetDlgItemText(IDC_NEXTCOMPAREIMEI, midChangeCpIMEI);
-					CIMEI2 = midChangeCpIMEI;
+					/*dlg->GetDlgItemText(IDC_NEXTCOMPAREIMEI, midChangeCpIMEI);
+					CIMEI2 = midChangeCpIMEI;*/
+					CIMEI2 = dlg->LdVec[dlg->CompareIndex];
 					dlg->SetDlgItemText(IDC_CompareIMEI2_EDIT, CIMEI2);
-				}				
+				}
 				CompareFinishFlag = FALSE;
 				FuncCompareSendTestFlag = false;
 			}
@@ -2302,7 +2328,7 @@ UINT SendComparePortThread(LPVOID lpParam)
 				dlg->GetDlgItemText(IDC_CompareIMEI1_EDIT, CIMEI1);
 				if (CIMEI1 == CIMEI2)
 				{
-					dlg->ShowCompareMsg(L"IMEI："+CIMEI1+L"对比通过", 0);
+					dlg->ShowCompareMsg(L"IMEI：" + CIMEI1 + L"对比通过", 0);
 					dlg->SetDlgItemText(IDC_CompareRemind_STATIC, L"对比通过");
 					dlg->WritetoTxt(L"Compare_" + zhidan + _T("_"), L"IMEI：" + CIMEI1 + L"对比通过\r\n");
 					dlg->UpdateCompareMes(CIMEI2, L"1");
@@ -2334,11 +2360,13 @@ UINT SendComparePortThread(LPVOID lpParam)
 		dlg->CompareCylinderPress(3);
 		Sleep(400);
 		dlg->CompareCylinderPress(30);
+		dlg->CompareIndex++;
 		goto WAITCONNECTBREAK;
 	FAIL:
 		dlg->CompareCylinderPress(4);
 		Sleep(400);
 		dlg->CompareCylinderPress(40);
+		dlg->CompareIndex++;
 		goto WAITCONNECTBREAK;
 	WAITCONNECTBREAK:
 		Sleep(400);
@@ -2358,7 +2386,7 @@ UINT SendComparePortThread(LPVOID lpParam)
 			Sleep(500);
 			StrRead = dlg->ReadFromComparePort();
 			dlg->WritetoTxt(L"Compare_" + zhidan + _T("_"), L"接收：" + StrRead + L"\r\n");
-			if (StrRead == "") 
+			if (StrRead == "")
 			{
 				WriteFile(dlg->Port2handler, CT2A(Teststrcommand), Teststrcommand.GetLength(), &dwBytesWrite, NULL);
 				dlg->WritetoTxt(L"Compare_" + zhidan + _T("_"), L"发送：" + Teststrcommand + L"\r\n");
@@ -2367,7 +2395,7 @@ UINT SendComparePortThread(LPVOID lpParam)
 				dlg->WritetoTxt(L"Compare_" + zhidan + _T("_"), L"接收：" + StrRead + L"\r\n");
 				if (StrRead == "") {
 					dlg->SetDlgItemText(IDC_CompareRemind_STATIC, L"就绪");
-					dlg->SetDlgItemText(IDC_CompareIMEI2_EDIT,L"");
+					dlg->SetDlgItemText(IDC_CompareIMEI2_EDIT, L"");
 					FuncFuncCompareLastSendTestFlag = false;
 				}
 			}
@@ -2376,7 +2404,7 @@ UINT SendComparePortThread(LPVOID lpParam)
 		FuncFuncCompareLastSendTestFlag = true;
 		FuncCompareSendTestFlag = true;
 	}
-	    return 0;
+	return 0;
 }
 
 //读串口函数
@@ -2390,7 +2418,7 @@ CString CMFC_LaserDlg::ReadFromComparePort()
 	BOOL bReadStat;
 	CString strread;
 	bReadStat = ReadFile(Port2handler, str, 199, &readreal, 0);
-	if (bReadStat){
+	if (bReadStat) {
 		strread = str;
 	}
 	else
@@ -2413,7 +2441,7 @@ void CMFC_LaserDlg::OnKillfocusCompareimei2Edit()
 		int nID = pWnd->GetDlgCtrlID();
 		if (nID == 1035 && CompareConnButtonText != "一键关闭")
 		{
-			
+
 		}
 	}*/
 }
@@ -2470,8 +2498,8 @@ HBRUSH CMFC_LaserDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
 
 	// TODO:  在此更改 DC 的任何特性
-	CString Fontstr1=L"";
-	CString Fontstr2=L"";
+	CString Fontstr1 = L"";
+	CString Fontstr2 = L"";
 	if (pWnd->GetDlgCtrlID() == IDC_BurningRemind_STATIC)
 	{
 		GetDlgItemText(IDC_BurningRemind_STATIC, Fontstr1);
@@ -2482,7 +2510,7 @@ HBRUSH CMFC_LaserDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 			pDC->SetTextColor(RGB(0, 0, 0));//用RGB宏改变颜色 
 			return m_brush;
 		}
-		else if (Fontstr1 == "IMEI重号" || Fontstr1 == "失败"){
+		else if (Fontstr1 == "IMEI重号" || Fontstr1 == "失败") {
 			m_brush.CreateSolidBrush(RGB(255, 0, 0));
 			pDC->SetBkColor(RGB(255, 0, 0));
 			pDC->SetTextColor(RGB(0, 0, 0));//用RGB宏改变颜色 
@@ -2506,7 +2534,7 @@ HBRUSH CMFC_LaserDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 			pDC->SetTextColor(RGB(0, 0, 0));//用RGB宏改变颜色 
 			return m_brush;
 		}
-		else if (Fontstr2 == "IMEI已对比过" || Fontstr2 == "对比失败"){
+		else if (Fontstr2 == "IMEI已对比过" || Fontstr2 == "对比失败") {
 			m_brush.CreateSolidBrush(RGB(255, 0, 0));
 			pDC->SetBkColor(RGB(255, 0, 0));
 			pDC->SetTextColor(RGB(0, 0, 0));//用RGB宏改变颜色 
@@ -2553,8 +2581,8 @@ CString CMFC_LaserDlg::GetExePath()
 /*写数据到txt文件*/
 BOOL CMFC_LaserDlg::WritetoTxt(CString module, CString sValue)
 {
-	try{
-		sValue = GetTime() +L" "+ sValue;
+	try {
+		sValue = GetTime() + L" " + sValue;
 		CString SubPath;
 		SubPath = module + GetDate();
 		SubPath = SubPath;
@@ -2570,7 +2598,7 @@ BOOL CMFC_LaserDlg::WritetoTxt(CString module, CString sValue)
 			file.Close();
 		}
 	}
-	catch (_com_error &e){
+	catch (_com_error &e) {
 		AfxMessageBox(e.Description());/*打印出异常原因*/
 	}
 	return FALSE;
@@ -2610,7 +2638,7 @@ void CMFC_LaserDlg::OnBnClickedAllautoButton()
 		GetDlgItemText(IDC_OpenLdSystem_BUTTON, laserbuttontext);
 		GetDlgItemText(IDC_CompareConn_BUTTON, comparebuttontext);
 		GetDlgItemText(IDC_OPENRELAY, JDQButtinText);
-		if (burnbuttontext == "一键关闭" || laserbuttontext == "关闭镭雕系统" || comparebuttontext == "一键关闭"||JDQButtinText==L"关闭继电器串口")
+		if (burnbuttontext == "一键关闭" || laserbuttontext == "关闭镭雕系统" || comparebuttontext == "一键关闭" || JDQButtinText == L"关闭继电器串口")
 		{
 			MessageBox(_T("启动失败！请先关闭已启动的模块"), _T("提示"), NULL);
 			return;
@@ -2703,11 +2731,11 @@ void CMFC_LaserDlg::OnBnClickedNonetCheck()
 		return;
 	}
 	ShowBurningMsg(L"串口初始化成功!", 0);
-	if (((CButton *)GetDlgItem(IDC_NoNet_CHECK))->GetCheck()){
+	if (((CButton *)GetDlgItem(IDC_NoNet_CHECK))->GetCheck()) {
 		GetDlgItem(IDC_BurningImei_EDIT)->EnableWindow(true);
 		m_BurningImeiEdit.SetFocus();
 	}
-	else{
+	else {
 		GetDlgItem(IDC_BurningImei_EDIT)->EnableWindow(false);
 	}
 }
@@ -2884,34 +2912,36 @@ CString CMFC_LaserDlg::HexStr2BinStr(CString HexStr)
 	for (int i = 0; i < StrLength; i++)
 	{
 		if (HexStr[i] >= 'A'&&HexStr[i] <= 'F')
-		{	int a = static_cast<int>(HexStr[i] - 'A' + 10);
-			switch (a) 
-			{	case 10:BinStr += "1010";break;
-				case 11:BinStr += "1011"; break;
-				case 12:BinStr += "1100"; break;
-				case 13:BinStr += "1101"; break;
-				case 14:BinStr += "1110"; break;
-				case 15:BinStr += "1111"; break;
+		{
+			int a = static_cast<int>(HexStr[i] - 'A' + 10);
+			switch (a)
+			{
+			case 10:BinStr += "1010"; break;
+			case 11:BinStr += "1011"; break;
+			case 12:BinStr += "1100"; break;
+			case 13:BinStr += "1101"; break;
+			case 14:BinStr += "1110"; break;
+			case 15:BinStr += "1111"; break;
 			}
 		}
 		else if (isdigit(HexStr[i]))
-		{ 
+		{
 			int b = static_cast<int>(HexStr[i] - '0');
 			switch (b)
-			{	
-				case 0:BinStr += "0000"; break;
-				case 1:BinStr += "0001"; break;
-				case 2:BinStr += "0010"; break;
-				case 3:BinStr += "0011"; break;
-				case 4:BinStr += "0100"; break;
-				case 5:BinStr += "0101"; break;
-				case 6:BinStr += "0110"; break;
-				case 7:BinStr += "0111"; break;
-				case 8:BinStr += "1000"; break;
-				case 9:BinStr += "1001"; break;
+			{
+			case 0:BinStr += "0000"; break;
+			case 1:BinStr += "0001"; break;
+			case 2:BinStr += "0010"; break;
+			case 3:BinStr += "0011"; break;
+			case 4:BinStr += "0100"; break;
+			case 5:BinStr += "0101"; break;
+			case 6:BinStr += "0110"; break;
+			case 7:BinStr += "0111"; break;
+			case 8:BinStr += "1000"; break;
+			case 9:BinStr += "1001"; break;
 			}
 		}
-		
+
 	}
 	return BinStr;
 }
@@ -2964,7 +2994,7 @@ void CMFC_LaserDlg::OnBnClickedGetcommand()
 	//send(clientSock, "123456789", 256, 0);
 	GetStation(zhidan);
 	MachineName = getMachineName(ZhiDanNO);
-	MessageBox(L"获取成功",L"提示");
+	MessageBox(L"获取成功", L"提示");
 }
 
 /*打开继电器串口*/
@@ -2974,9 +3004,9 @@ void CMFC_LaserDlg::OnBnClickedOpenrelay()
 	CString MyConnButtonText;
 	GetCommPort((CComboBox*)GetDlgItem(IDC_JDQ_COMBO), Port3No);
 	GetDlgItem(IDC_OPENRELAY)->GetWindowText(MyConnButtonText);
-	if (MyConnButtonText==L"打开PLC串口")
+	if (MyConnButtonText == L"打开PLC串口")
 	{
-		
+
 		Port3handler = InitCom2(Port3No);
 		if (Port3handler == NULL)
 		{
@@ -2999,7 +3029,7 @@ void CMFC_LaserDlg::OnBnClickedOpenrelay()
 		GetDlgItem(IDC_JDQ_COMBO)->EnableWindow(true);
 		GetDlgItem(IDC_OPENRELAY)->SetWindowText(L"打开PLC串口");
 	}
-	
+
 	//ShowBurningMsg(L"继电器串口初始化成功!");
 }
 
@@ -3060,20 +3090,20 @@ UINT listenThread(LPVOID lparam)
 	}
 
 	while (listenFlag)
-	{		
-			sockaddr_in clientAddr;
-			int iLen = sizeof(sockaddr_in);
-			pServer->clientSock = accept(pServer->m_SockListen, (struct sockaddr *)&clientAddr, &iLen);
-			if (pServer->clientSock == INVALID_SOCKET)
-			{
-				continue;
-			}
-			else
-			{
-				LD2ConnectFlag = TRUE;
-				//pServer->MessageBox(L"镭雕机二连接成功");
-			}
-			Sleep(100);
+	{
+		sockaddr_in clientAddr;
+		int iLen = sizeof(sockaddr_in);
+		pServer->clientSock = accept(pServer->m_SockListen, (struct sockaddr *)&clientAddr, &iLen);
+		if (pServer->clientSock == INVALID_SOCKET)
+		{
+			continue;
+		}
+		else
+		{
+			LD2ConnectFlag = TRUE;
+			//pServer->MessageBox(L"镭雕机二连接成功");
+		}
+		Sleep(100);
 	}
 	return 0;
 }
@@ -3084,16 +3114,16 @@ UINT readFromLd2(LPVOID lparam)
 	CMFC_LaserDlg *dlg = (CMFC_LaserDlg*)lparam;
 	while (readFromClientFlag)
 	{
-	
-			char szRev[256] = { 0 };
-			iRet = recv(dlg->clientSock, szRev, sizeof(szRev), 0);
-			if (iRet > 0)
-			{
-				readFromClient = A2T(szRev); //中文出现乱码，英文正常
-				dlg->SetRicheditText(readFromClient,0);
-				//dlg->SetDlgItemTextW(IDC_LocalPcName_EDIT, readFromClient);
 
-			}
+		char szRev[256] = { 0 };
+		iRet = recv(dlg->clientSock, szRev, sizeof(szRev), 0);
+		if (iRet > 0)
+		{
+			readFromClient = A2T(szRev); //中文出现乱码，英文正常
+			dlg->SetRicheditText(readFromClient, 0);
+			//dlg->SetDlgItemTextW(IDC_LocalPcName_EDIT, readFromClient);
+
+		}
 	}
 	return 0;
 }
@@ -3120,15 +3150,15 @@ void CMFC_LaserDlg::OnBnClickedButton4()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	SetRelative SetRelativeDlg;
-	INT_PTR res =  SetRelativeDlg.DoModal();
+	INT_PTR res = SetRelativeDlg.DoModal();
 }
 //导入文档
 void CMFC_LaserDlg::OnBnClickedLodatxt()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	CString   FilePathName,txtValue;//文件名参数定义
+	CString   FilePathName, txtValue;//文件名参数定义
 	CStdioFile file;
-	CFileDialog  Dlg(TRUE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, L"TXT Files(*.txt)|*.txt|All Files(*.*)|*.*",this,NULL,TRUE);
+	CFileDialog  Dlg(TRUE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, L"TXT Files(*.txt)|*.txt|All Files(*.*)|*.*", this, NULL, TRUE);
 	//打开文件
 	if (Dlg.DoModal() == IDOK)//是否打开成功
 	{
@@ -3146,12 +3176,12 @@ void CMFC_LaserDlg::OnBnClickedLodatxt()
 	{
 		TxTResult.push_back(txtValue);
 	}
-	MessageBox(L"导入成功",L"提示");
+	MessageBox(L"导入成功", L"提示");
 	file.Close();
 }
 
 //以@@分割指令数据
-void CMFC_LaserDlg::GetCommandAndRec(int num,CString &str1, CString &str2, CString &str3, CString &str4)
+void CMFC_LaserDlg::GetCommandAndRec(int num, CString &str1, CString &str2, CString &str3, CString &str4)
 {
 	CString vectorCommand;
 	vectorCommand = StationValVector.at(num);
@@ -3165,7 +3195,7 @@ void CMFC_LaserDlg::GetCommandAndRec(int num,CString &str1, CString &str2, CStri
 	ValLength = vectorCommand.GetLength();
 	str3 = vectorCommand.Left(vectorCommand.Find(L"@@"));
 	vectorCommand = vectorCommand.Mid(vectorCommand.Find(L"@@") + 2, ValLength);
-	str4 = vectorCommand;	        
+	str4 = vectorCommand;
 }
 
 //获取Stationz字段指令
@@ -3173,7 +3203,7 @@ void CMFC_LaserDlg::GetStation(CString softWare)
 {
 	ADOManage ado;
 	ado.ConnSQL();
-	CString StationVal,SubStationVal;
+	CString StationVal, SubStationVal;
 	int ValLength;
 	StationVal = ado.adoGetStation(softWare);
 	while (true)
@@ -3181,8 +3211,8 @@ void CMFC_LaserDlg::GetStation(CString softWare)
 		if (StationVal.Find(L"}}") != -1)
 		{
 			ValLength = StationVal.GetLength();
-			StationVal = StationVal.Mid(StationVal.Find(L"}}")+1, ValLength);
-			if (StationVal.Find(L"}}")!=-1)
+			StationVal = StationVal.Mid(StationVal.Find(L"}}") + 1, ValLength);
+			if (StationVal.Find(L"}}") != -1)
 			{
 				SubStationVal = StationVal.Left(StationVal.Find(L"}}"));
 				StationVal = StationVal.Mid(StationVal.Find(L"}}"), StationVal.GetLength());
@@ -3217,7 +3247,7 @@ BOOL CMFC_LaserDlg::checkIMEIbyID(CString chipID)
 	{
 		myadomanage.CloseAll();
 		return TRUE;
-	}	
+	}
 	else
 	{
 		myadomanage.CloseAll();
@@ -3226,7 +3256,7 @@ BOOL CMFC_LaserDlg::checkIMEIbyID(CString chipID)
 }
 
 //获取关联写号数据
-CString CMFC_LaserDlg::getRelativeFata(CString param,CString paramIMEI)
+CString CMFC_LaserDlg::getRelativeFata(CString param, CString paramIMEI)
 {
 	ADOManage myadomanage;
 	CString relativeData;
@@ -3237,16 +3267,16 @@ CString CMFC_LaserDlg::getRelativeFata(CString param,CString paramIMEI)
 }
 
 //保存获取的数据到数据库
-void CMFC_LaserDlg::saveDataToDB(CString data, CString IMEI,CString ziduan)
+void CMFC_LaserDlg::saveDataToDB(CString data, CString IMEI, CString ziduan)
 {
 	ADOManage myadomanage;
 	myadomanage.ConnSQL();
-	myadomanage.saveData(data,IMEI,ziduan);
+	myadomanage.saveData(data, IMEI, ziduan);
 	myadomanage.CloseAll();
 }
 
 //获取新表的数据
-CString CMFC_LaserDlg::getNewSheetData(CString IMEI,CString ziduan)
+CString CMFC_LaserDlg::getNewSheetData(CString IMEI, CString ziduan)
 {
 	ADOManage myadomanage;
 	CString dbdata = L"";
@@ -3307,7 +3337,7 @@ void CMFC_LaserDlg::UpdateIMEIToDB(CString data, CString IMEI, CString ziduan)
 {
 	ADOManage myadomanage;
 	myadomanage.ConnSQL();
-	myadomanage.UpdateIMEIToRelative(data,IMEI,ziduan);
+	myadomanage.UpdateIMEIToRelative(data, IMEI, ziduan);
 	myadomanage.CloseAll();
 }
 //更新ICCID、SIM、MAC到新关联表
@@ -3324,16 +3354,16 @@ void  CMFC_LaserDlg::updateToCoupleTest(CString IMEI, CString chipid)
 {
 	ADOManage myadomanage;
 	myadomanage.ConnSQL();
-	myadomanage.updateDatatoCoupleDB(IMEI,chipid);
+	myadomanage.updateDatatoCoupleDB(IMEI, chipid);
 	myadomanage.CloseAll();
 }
 
 //插入成功信息到总表
-void CMFC_LaserDlg::insertToMainSheet(CString IMEI, CString result,CString chipid,CString version,CString machinename)
+void CMFC_LaserDlg::insertToMainSheet(CString IMEI, CString result, CString chipid, CString version, CString machinename)
 {
 	ADOManage myadomanage;
 	myadomanage.ConnSQL();
-	myadomanage.insertToMainSheetDB(IMEI, result,chipid,version,machinename);
+	myadomanage.insertToMainSheetDB(IMEI, result, chipid, version, machinename);
 	myadomanage.CloseAll();
 }
 
@@ -3360,17 +3390,25 @@ UINT SendDBCommand(LPVOID lparam)
 	DWORD dwBytesWrite;
 	BOOL haveBandIMEI = FALSE;
 	CString recChipID;
-	CString justIMEI,BurnSendToLd;
+	CString JudgeIMEI;
+	CString justIMEI, BurnSendToLd;
 	int j;
-	CString commandName, commandVal, changeParam, commandReceive,tryTime,readPort,DbTestcommand;
+	CString commandName, commandVal, changeParam, commandReceive, tryTime, readPort, DbTestcommand;
 	CString chipID;
 	while (m_BurningConrtolFlag)
 	{
+		dlg->GetDlgItemText(IDC_BurningImei_EDIT, JudgeIMEI);
+		if (JudgeIMEI.GetLength() != FImeiStart.GetLength() || JudgeIMEI<FImeiStart || JudgeIMEI.GetLength() != FImeiEnd.GetLength() || JudgeIMEI>FImeiEnd)
+		{
+			dlg->ShowBurningMsg(L"IMEI:" + JudgeIMEI + L"在当前号段外，请检查此订单号段是否已烧写完成", 1);
+			dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"IMEI：" + JudgeIMEI + L"在当前号段外\r\n");
+			goto FALILDONE;
+		}
 		dlg->GetCommandAndRec(0, commandName, commandReceive, tryTime, commandVal);
 		tryTimeInt = _ttoi(tryTime);
 		tryTimeInt = tryTimeInt * 3;
 		do
-		{		
+		{
 			if (EnterScanFlag)
 			{
 				BOOL EditHaveVal = TRUE;
@@ -3381,8 +3419,8 @@ UINT SendDBCommand(LPVOID lparam)
 					{
 						goto CLOSETHREAD;
 					}
-					dlg->GetDlgItemTextW(IDC_BurningImei_EDIT,EditVal);
-					if (EditVal.Find(L"\r\n")!=-1)
+					dlg->GetDlgItemTextW(IDC_BurningImei_EDIT, EditVal);
+					if (EditVal.Find(L"\r\n") != -1)
 					{
 						EditHaveVal = FALSE;
 					}
@@ -3390,7 +3428,7 @@ UINT SendDBCommand(LPVOID lparam)
 				} while (EditHaveVal);
 			}
 			dlg->GetCommandAndRec(1, commandName, commandReceive, tryTime, commandVal);
-			commandVal.Format(L"%s\r\n",commandVal);
+			commandVal.Format(L"%s\r\n", commandVal);
 			DbTestcommand = commandVal;
 			if (m_BurningConrtolFlag == false)
 			{
@@ -3398,13 +3436,13 @@ UINT SendDBCommand(LPVOID lparam)
 			}
 			//dlg->BatOnAndOff(1);
 			bWriteStat = WriteFile(dlg->Port1handler, CT2A(DbTestcommand), DbTestcommand.GetLength(), &dwBytesWrite, NULL);
-			dlg->ShowBurningMsg(L"发:" + DbTestcommand,0);
+			dlg->ShowBurningMsg(L"发:" + DbTestcommand, 0);
 			Sleep(400);
 			readPort = dlg->ReadFromBurningPort();
 			if (readPort.Find(commandReceive) >= 0)
 			{
 				//dlg->BatOnAndOff(10);
-				dlg->ShowBurningMsg(L"收:" + readPort,0);
+				dlg->ShowBurningMsg(L"收:" + readPort, 0);
 				dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"发送：" + DbTestcommand + L"\r\n");
 				dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"接收：" + readPort + L"\r\n");
 				dlg->BurningCylinderPress(5);  //给继电器发送信息，给plc烧写中的信号
@@ -3415,529 +3453,529 @@ UINT SendDBCommand(LPVOID lparam)
 				break;
 			}
 		} while (pcEnterTestFlag);
-		for (j = 3; j <= StationValVector.size()-1; j++)
+		for (j = 3; j <= StationValVector.size() - 1; j++)
 		{
 			dlg->GetCommandAndRec(j, commandName, commandReceive, tryTime, commandVal);
-					if (commandName.Find(L"芯片ID")!=-1)
+			if (commandName.Find(L"芯片ID") != -1)
+			{
+				commandVal = commandVal + L"\r\n";
+				for (int k = 0; k <= tryTimeInt;)
+				{
+					if (m_BurningConrtolFlag == false)
 					{
-						commandVal = commandVal + L"\r\n";
-						for (int k = 0; k <= tryTimeInt;)
-						{	
-							if (m_BurningConrtolFlag == false)
-							{
-								goto CLOSETHREAD;
-							}
-							bWriteStat = WriteFile(dlg->Port1handler, CT2A(commandVal), commandVal.GetLength(), &dwBytesWrite, NULL);
-							dlg->ShowBurningMsg(L"发:" + commandVal, 0);
-							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"发送：" + commandVal + L"\r\n");
-							Sleep(500);
-							readPort = dlg->ReadFromBurningPort();
-							dlg->ShowBurningMsg(L"收:" + readPort, 0);
-							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"接收：" + readPort + L"\r\n");
-							commandReceive.Replace(L" ", L"");
-							readPort.Replace(L" ", L"");
-							readPort.Replace(L"\r", L"");
-							readPort.Replace(L"\n", L"");
-							if (readPort.Find(commandReceive)!=-1)
-							{
-								chipID = readPort.Mid(readPort.Find(commandReceive) + commandReceive.GetLength());
-								chipID = chipID.Left(32);
-								dlg->ShowBurningMsg(L"读取芯片ID成功:"+ chipID, 0);
-								dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"读取芯片成功：" + chipID + L"\r\n");
-								k = tryTimeInt + 1;
-							}	
-							else
-							{
-								k++;
-								if (k>tryTimeInt)
-								{
-									dlg->ShowBurningMsg(L"读取芯片ID失败", 1);
-									dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"读取芯片失败\r\n");
-									goto FALILDONE;
-								}
-							}
-						}
+						goto CLOSETHREAD;
 					}
-					else if (commandName.Find(L"软件版本") != -1)
+					bWriteStat = WriteFile(dlg->Port1handler, CT2A(commandVal), commandVal.GetLength(), &dwBytesWrite, NULL);
+					dlg->ShowBurningMsg(L"发:" + commandVal, 0);
+					dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"发送：" + commandVal + L"\r\n");
+					Sleep(500);
+					readPort = dlg->ReadFromBurningPort();
+					dlg->ShowBurningMsg(L"收:" + readPort, 0);
+					dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"接收：" + readPort + L"\r\n");
+					commandReceive.Replace(L" ", L"");
+					readPort.Replace(L" ", L"");
+					readPort.Replace(L"\r", L"");
+					readPort.Replace(L"\n", L"");
+					if (readPort.Find(commandReceive) != -1)
 					{
-						commandVal = commandVal + L"\r\n";
-						for (int p = 0; p <= tryTimeInt;)
-						{		
-							if (m_BurningConrtolFlag == false)
-							{
-								goto CLOSETHREAD;
-							}
-							bWriteStat = WriteFile(dlg->Port1handler, CT2A(commandVal), commandVal.GetLength(), &dwBytesWrite, NULL);
-							dlg->ShowBurningMsg(L"发:" + commandVal, 0);
-							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"发送：" + commandVal + L"\r\n");
-							Sleep(500);
-							readPort = dlg->ReadFromBurningPort();
-							dlg->ShowBurningMsg(L"发:" + readPort, 0);
-							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"接收：" + readPort + L"\r\n");
-							commandReceive.Replace(L" ", L"");
-							readPort.Replace(L" ", L"");
-							/*readPort.Replace(L"\r", L"");
-							readPort.Replace(L"\n", L"");*/
-							if (readPort.Find(commandReceive) != -1)
-							{
-							    Allversion = readPort.Mid(readPort.Find(commandReceive) + commandReceive.GetLength());
-								Allversion = Allversion.Left(Allversion.Find(L"\r\n"));
-								dlg->ShowBurningMsg(L"读取软件版本成功："+ Allversion, 0);
-								dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"读取软件版本成功：" + Allversion + L"\r\n");
-								p = tryTimeInt + 1;
-							}
-							else
-							{
-								p++;
-								if (p > tryTimeInt)
-								{
-									dlg->ShowBurningMsg(L"读取软件版本失败", 1);
-									dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"读取软件版本失败\r\n");
-									goto FALILDONE;
-								}
-							}
-						}
+						chipID = readPort.Mid(readPort.Find(commandReceive) + commandReceive.GetLength());
+						chipID = chipID.Left(32);
+						dlg->ShowBurningMsg(L"读取芯片ID成功:" + chipID, 0);
+						dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"读取芯片成功：" + chipID + L"\r\n");
+						k = tryTimeInt + 1;
 					}
-					else if (commandName.Find(L"关联写号") != -1)
+					else
 					{
-						CString lastParam;
-						lastParam = L"IMEI" + commandName.Right(1);
-						CString relativeData = dlg->getRelativeFata(lastParam, CurrentBurningImei);
-						commandVal = commandVal + relativeData + L"\r\n";
-						for  (int L = 0; L <= tryTimeInt;)
+						k++;
+						if (k > tryTimeInt)
 						{
-							if (m_BurningConrtolFlag == false)
-							{
-								goto CLOSETHREAD;
-							}
-							bWriteStat = WriteFile(dlg->Port1handler, CT2A(commandVal), commandVal.GetLength(), &dwBytesWrite, NULL);
-							dlg->ShowBurningMsg(L"发:" + commandVal, 0);
-							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"发送：" + commandVal + L"\r\n");
-							Sleep(500);
-							readPort = dlg->ReadFromBurningPort();
-							dlg->ShowBurningMsg(L"发:" + readPort, 0);
-							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"接收：" + readPort + L"\r\n");
-							commandReceive.Replace(L" ", L"");
-							readPort.Replace(L" ", L"");
-							/*readPort.Replace(L"\r", L"");
-							readPort.Replace(L"\n", L"");*/
-							if (readPort.Find(commandReceive)!=-1)
-							{
-								dlg->ShowBurningMsg(commandName+L"成功", 0);
-								dlg->WritetoTxt(L"Burn_" + zhidan + L"_", commandName + L"成功\r\n");
-								L = tryTimeInt + 1;
-							}
-							else
-							{
-								L++;
-								if (L > tryTimeInt)
-								{
-									dlg->ShowBurningMsg(commandName + L"失败", 1);
-									dlg->WritetoTxt(L"Burn_" + zhidan + L"_", commandName + L"失败\r\n");
-									goto FALILDONE;
-								}
-							}
-						}
-					}	
-					else if (commandName.Find(L"写IMEI1") != -1)
-					{
-						commandVal = commandVal + L"\r\n";
-						for (int R = 0; R <= tryTimeInt;)
-						{
-							if (m_BurningConrtolFlag == false)
-							{
-								goto CLOSETHREAD;
-							}
-							bWriteStat = WriteFile(dlg->Port1handler, CT2A(commandVal), commandVal.GetLength(), &dwBytesWrite, NULL);
-							dlg->ShowBurningMsg(L"发:" + commandVal, 0);
-							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"发送：" + commandVal + L"\r\n");
-							Sleep(500);
-							readPort = dlg->ReadFromBurningPort();
-							dlg->ShowBurningMsg(L"发:" + readPort, 0);
-							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"接收：" + readPort + L"\r\n");
-							commandReceive.Replace(L" ", L"");
-							readPort.Replace(L" ", L"");
-							/*readPort.Replace(L"\r", L"");
-							readPort.Replace(L"\n", L"");*/
-							if (readPort.Find(commandReceive) != -1)
-							{
-								Allversion = readPort.Mid(readPort.Find(commandReceive) + commandReceive.GetLength());
-								dlg->ShowBurningMsg(L"第一条烧写指令发送成功", 0);
-								dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"第一条烧写指令发送成功\r\n");
-								R = tryTimeInt + 1;
-							}
-							else
-							{
-								R++;
-								if (R > tryTimeInt)
-								{
-									dlg->ShowBurningMsg(L"第一条烧写指令发送失败", 0);
-									dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"第一条烧写指令发送失败\r\n");
-									goto FALILDONE;
-								}
-							}
-						}
-					}
-					else if (commandName.Find(L"写IMEI")!=-1)
-					{
-					    CString NoCheckCodeIMEI;
-						CString chipBandIMEI;
-						CString haveCheckCodeIMEI;
-						chipBandIMEI =dlg->getBandIMEIByChipID(chipID);
-						if (chipBandIMEI != L"") //已有绑定IMEI
-						{
-						    if (chipBandIMEI.GetLength() == 15)
-						    {
-							   haveCheckCodeIMEI = chipBandIMEI;
-							   chipBandIMEI = chipBandIMEI.Left(chipBandIMEI.GetLength() - 1);
-						    }
-							dlg->ShowBurningMsg(L"芯片ID：" + chipID + L"已与IMEI：" + haveCheckCodeIMEI + L"绑定",1);
-							dlg->WritetoTxt(L"Burn_" + zhidan + L"_",L"芯片ID："+chipID+L"已与IMEI："+ haveCheckCodeIMEI +L"绑定\r\n");
+							dlg->ShowBurningMsg(L"读取芯片ID失败", 1);
+							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"读取芯片失败\r\n");
 							goto FALILDONE;
-							/*if (chipBandIMEI>=FImeiStart&&chipBandIMEI<=FImeiEnd)
-							{
-								CurrentBurningImei = haveCheckCodeIMEI;
-								haveBandIMEI = TRUE;
-								goto HAVEBANDIMEI;
-							}
-							else
-							{
-								dlg->GetDlgItemText(IDC_BurningImei_EDIT, CurrentBurningImei);
-							}*/
 						}
-						else
+					}
+				}
+			}
+			else if (commandName.Find(L"软件版本") != -1)
+			{
+				commandVal = commandVal + L"\r\n";
+				for (int p = 0; p <= tryTimeInt;)
+				{
+					if (m_BurningConrtolFlag == false)
+					{
+						goto CLOSETHREAD;
+					}
+					bWriteStat = WriteFile(dlg->Port1handler, CT2A(commandVal), commandVal.GetLength(), &dwBytesWrite, NULL);
+					dlg->ShowBurningMsg(L"发:" + commandVal, 0);
+					dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"发送：" + commandVal + L"\r\n");
+					Sleep(500);
+					readPort = dlg->ReadFromBurningPort();
+					dlg->ShowBurningMsg(L"发:" + readPort, 0);
+					dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"接收：" + readPort + L"\r\n");
+					commandReceive.Replace(L" ", L"");
+					readPort.Replace(L" ", L"");
+					/*readPort.Replace(L"\r", L"");
+					readPort.Replace(L"\n", L"");*/
+					if (readPort.Find(commandReceive) != -1)
+					{
+						Allversion = readPort.Mid(readPort.Find(commandReceive) + commandReceive.GetLength());
+						Allversion = Allversion.Left(Allversion.Find(L"\r\n"));
+						dlg->ShowBurningMsg(L"读取软件版本成功：" + Allversion, 0);
+						dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"读取软件版本成功：" + Allversion + L"\r\n");
+						p = tryTimeInt + 1;
+					}
+					else
+					{
+						p++;
+						if (p > tryTimeInt)
 						{
-							dlg->GetDlgItemText(IDC_BurningImei_EDIT, CurrentBurningImei);
-						}	
+							dlg->ShowBurningMsg(L"读取软件版本失败", 1);
+							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"读取软件版本失败\r\n");
+							goto FALILDONE;
+						}
+					}
+				}
+			}
+			else if (commandName.Find(L"关联写号") != -1)
+			{
+				CString lastParam;
+				lastParam = L"IMEI" + commandName.Right(1);
+				CString relativeData = dlg->getRelativeFata(lastParam, CurrentBurningImei);
+				commandVal = commandVal + relativeData + L"\r\n";
+				for (int L = 0; L <= tryTimeInt;)
+				{
+					if (m_BurningConrtolFlag == false)
+					{
+						goto CLOSETHREAD;
+					}
+					bWriteStat = WriteFile(dlg->Port1handler, CT2A(commandVal), commandVal.GetLength(), &dwBytesWrite, NULL);
+					dlg->ShowBurningMsg(L"发:" + commandVal, 0);
+					dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"发送：" + commandVal + L"\r\n");
+					Sleep(500);
+					readPort = dlg->ReadFromBurningPort();
+					dlg->ShowBurningMsg(L"发:" + readPort, 0);
+					dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"接收：" + readPort + L"\r\n");
+					commandReceive.Replace(L" ", L"");
+					readPort.Replace(L" ", L"");
+					/*readPort.Replace(L"\r", L"");
+					readPort.Replace(L"\n", L"");*/
+					if (readPort.Find(commandReceive) != -1)
+					{
+						dlg->ShowBurningMsg(commandName + L"成功", 0);
+						dlg->WritetoTxt(L"Burn_" + zhidan + L"_", commandName + L"成功\r\n");
+						L = tryTimeInt + 1;
+					}
+					else
+					{
+						L++;
+						if (L > tryTimeInt)
+						{
+							dlg->ShowBurningMsg(commandName + L"失败", 1);
+							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", commandName + L"失败\r\n");
+							goto FALILDONE;
+						}
+					}
+				}
+			}
+			else if (commandName.Find(L"写IMEI1") != -1)
+			{
+				commandVal = commandVal + L"\r\n";
+				for (int R = 0; R <= tryTimeInt;)
+				{
+					if (m_BurningConrtolFlag == false)
+					{
+						goto CLOSETHREAD;
+					}
+					bWriteStat = WriteFile(dlg->Port1handler, CT2A(commandVal), commandVal.GetLength(), &dwBytesWrite, NULL);
+					dlg->ShowBurningMsg(L"发:" + commandVal, 0);
+					dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"发送：" + commandVal + L"\r\n");
+					Sleep(500);
+					readPort = dlg->ReadFromBurningPort();
+					dlg->ShowBurningMsg(L"发:" + readPort, 0);
+					dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"接收：" + readPort + L"\r\n");
+					commandReceive.Replace(L" ", L"");
+					readPort.Replace(L" ", L"");
+					/*readPort.Replace(L"\r", L"");
+					readPort.Replace(L"\n", L"");*/
+					if (readPort.Find(commandReceive) != -1)
+					{
+						Allversion = readPort.Mid(readPort.Find(commandReceive) + commandReceive.GetLength());
+						dlg->ShowBurningMsg(L"第一条烧写指令发送成功", 0);
+						dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"第一条烧写指令发送成功\r\n");
+						R = tryTimeInt + 1;
+					}
+					else
+					{
+						R++;
+						if (R > tryTimeInt)
+						{
+							dlg->ShowBurningMsg(L"第一条烧写指令发送失败", 0);
+							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"第一条烧写指令发送失败\r\n");
+							goto FALILDONE;
+						}
+					}
+				}
+			}
+			else if (commandName.Find(L"写IMEI") != -1)
+			{
+				CString NoCheckCodeIMEI;
+				CString chipBandIMEI;
+				CString haveCheckCodeIMEI;
+				chipBandIMEI = dlg->getBandIMEIByChipID(chipID);
+				if (chipBandIMEI != L"") //已有绑定IMEI
+				{
+					if (chipBandIMEI.GetLength() == 15)
+					{
+						haveCheckCodeIMEI = chipBandIMEI;
+						chipBandIMEI = chipBandIMEI.Left(chipBandIMEI.GetLength() - 1);
+					}
+					dlg->ShowBurningMsg(L"芯片ID：" + chipID + L"已与IMEI：" + haveCheckCodeIMEI + L"绑定", 1);
+					dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"芯片ID：" + chipID + L"已与IMEI：" + haveCheckCodeIMEI + L"绑定\r\n");
+					goto FALILDONE;
+					/*if (chipBandIMEI>=FImeiStart&&chipBandIMEI<=FImeiEnd)
+					{
+						CurrentBurningImei = haveCheckCodeIMEI;
+						haveBandIMEI = TRUE;
+						goto HAVEBANDIMEI;
+					}
+					else
+					{
+						dlg->GetDlgItemText(IDC_BurningImei_EDIT, CurrentBurningImei);
+					}*/
+				}
+				else
+				{
+					dlg->GetDlgItemText(IDC_BurningImei_EDIT, CurrentBurningImei);
+				}
+				if (!dlg->m_NoCheckCodeCheckControl.GetCheck())
+				{
+					CurrentBurningImei = dlg->CreateIMEI15(CurrentBurningImei);
+				}
+				else
+				{
+					CurrentBurningImei = CurrentBurningImei;
+				}
+				BOOL checkRidFlag = TRUE;
+				do
+				{
+					if (m_BurningConrtolFlag == false)
+					{
+						break;
+					}
+					if (!dlg->m_NoCheckCodeCheckControl.GetCheck())
+					{
+						NoCheckCodeIMEI = CurrentBurningImei.Left(14);
+					}
+					else
+					{
+						NoCheckCodeIMEI = CurrentBurningImei;
+					}
+					if (dlg->CheckIMEI(CurrentBurningImei) == 1) //检查此IMEI是否已被用过，==1代表用过，则IMEI+1后再进行判断
+					{
+						dlg->ShowBurningMsg(L"IMEI：" + CurrentBurningImei + L"重号，自动过滤", 1);
+						dlg->WritetoTxt(L"Burn_" + zhidan + L"_", CurrentBurningImei + L"重号\r\n");
+						if (EnterScanFlag)    //扫描模式，如果重号则直接判断位失败
+						{
+							checkRidFlag = FALSE;
+							goto FALILDONE;
+						}
+						unsigned long long Ridimeiint = 0;
+						Ridimeiint = _atoi64(CStringA(NoCheckCodeIMEI)) + IncreasingnumberInt;
+						NoCheckCodeIMEI = _ui64toa(Ridimeiint, CT2A(NoCheckCodeIMEI), 10);
+						if (NoCheckCodeIMEI.GetLength() != FImeiStart.GetLength() || NoCheckCodeIMEI<FImeiStart || NoCheckCodeIMEI.GetLength() != FImeiEnd.GetLength() || NoCheckCodeIMEI>FImeiEnd)
+						{
+							dlg->ShowBurningMsg(L"IMEI:" + CurrentBurningImei + L"在当前号段外，请检查此订单号段是否已烧写完成", 1);
+							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"IMEI：" + CurrentBurningImei + L"在当前号段外\r\n");
+							goto FALILDONE;
+						}
 						if (!dlg->m_NoCheckCodeCheckControl.GetCheck())
 						{
-							CurrentBurningImei = dlg->CreateIMEI15(CurrentBurningImei);
+							CurrentBurningImei = dlg->CreateIMEI15(NoCheckCodeIMEI);
 						}
 						else
 						{
-							CurrentBurningImei = CurrentBurningImei;
+							CurrentBurningImei = NoCheckCodeIMEI;
 						}
-						BOOL checkRidFlag = TRUE;
-						do
+					}
+					else
+					{
+						dlg->SetDlgItemText(IDC_BurningImei_EDIT, NoCheckCodeIMEI);
+						dlg->UpdateWindow();
+						checkRidFlag = FALSE;
+					}
+				} while (checkRidFlag);
+			HAVEBANDIMEI:
+				commandVal = commandVal + CurrentBurningImei + L"\r\n";
+				for (int o = 0; o <= tryTimeInt;)
+				{
+					if (m_BurningConrtolFlag == false)
+					{
+						goto CLOSETHREAD;
+					}
+					bWriteStat = WriteFile(dlg->Port1handler, CT2A(commandVal), commandVal.GetLength(), &dwBytesWrite, NULL);
+					dlg->ShowBurningMsg(L"发:" + commandVal, 0);
+					dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"发送：" + commandVal + L"\r\n");
+					Sleep(500);
+					readPort = dlg->ReadFromBurningPort();
+					dlg->ShowBurningMsg(L"收:" + readPort, 0);
+					dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"接收：" + readPort + L"\r\n");
+					commandReceive.Replace(L" ", L"");
+					readPort.Replace(L" ", L"");
+					/*readPort.Replace(L"\r", L"");
+					readPort.Replace(L"\n", L"");*/
+					if (readPort.Find(commandReceive) != -1)
+					{
+						unsigned long long imeiint;
+						CString imeistr;
+						dlg->ShowBurningMsg(L"IMEI:" + CurrentBurningImei + L"烧写成功", 0);
+						dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"IMEI：" + CurrentBurningImei + L"烧写成功\r\n");
+						dlg->updateToCoupleTest(CurrentBurningImei, chipID); //更新IMEI号到耦合表
+						if (haveBandIMEI)
 						{
-							if (m_BurningConrtolFlag == false)
-							{
-								break;
-							}
+							dlg->UpdateToMainSheet(CurrentBurningImei, L"1", chipID, Allversion, MachineName);
+						}
+						else
+						{
+							dlg->insertToMainSheet(CurrentBurningImei, L"1", chipID, Allversion, MachineName);
+						}
+						if (!haveBandIMEI && !EnterScanFlag)
+						{
 							if (!dlg->m_NoCheckCodeCheckControl.GetCheck())
 							{
-								NoCheckCodeIMEI = CurrentBurningImei.Left(14);
+								justIMEI = CurrentBurningImei.Left(14);
 							}
 							else
 							{
-								NoCheckCodeIMEI = CurrentBurningImei;
+								justIMEI = CurrentBurningImei;
 							}
-							if (dlg->CheckIMEI(CurrentBurningImei) == 1) //检查此IMEI是否已被用过，==1代表用过，则IMEI+1后再进行判断
-							{
-								dlg->ShowBurningMsg(L"IMEI："+CurrentBurningImei + L"重号", 1);
-								dlg->WritetoTxt(L"Burn_" + zhidan + L"_", CurrentBurningImei+L"重号\r\n");
-								if (EnterScanFlag)    //扫描模式，如果重号则直接判断位失败
-								{
-									checkRidFlag = FALSE;
-									goto FALILDONE;
-								}
-								unsigned long long Ridimeiint = 0;
-								Ridimeiint = _atoi64(CStringA(NoCheckCodeIMEI)) + IncreasingnumberInt;
-								NoCheckCodeIMEI = _ui64toa(Ridimeiint, CT2A(NoCheckCodeIMEI), 10);
-								if (NoCheckCodeIMEI.GetLength()!= FImeiStart.GetLength()||NoCheckCodeIMEI<FImeiStart ||NoCheckCodeIMEI.GetLength()!=FImeiEnd.GetLength()|| NoCheckCodeIMEI>FImeiEnd)
-								{
-									dlg->ShowBurningMsg(L"IMEI:" + CurrentBurningImei + L"在当前号段外，请检查此订单号段是否已烧写完成", 1);
-									dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"IMEI：" + CurrentBurningImei + L"在当前号段外\r\n");
-									goto FALILDONE;
-								}
-								if (!dlg->m_NoCheckCodeCheckControl.GetCheck())
-								{
-									CurrentBurningImei = dlg->CreateIMEI15(NoCheckCodeIMEI);
-								}
-								else
-								{
-									CurrentBurningImei = NoCheckCodeIMEI;
-								}
-							}
-							else
-							{
-								dlg->SetDlgItemText(IDC_BurningImei_EDIT, NoCheckCodeIMEI);
-								dlg->UpdateWindow();
-								checkRidFlag = FALSE;
-							}
-						} while (checkRidFlag);						
-		HAVEBANDIMEI:
-						commandVal = commandVal + CurrentBurningImei + L"\r\n";
-						for (int o = 0; o <= tryTimeInt;)
-						{		
-							if (m_BurningConrtolFlag == false)
-							{
-								goto CLOSETHREAD;
-							}
-							bWriteStat = WriteFile(dlg->Port1handler, CT2A(commandVal), commandVal.GetLength(), &dwBytesWrite, NULL);
-							dlg->ShowBurningMsg(L"发:" + commandVal, 0);
-							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"发送：" + commandVal + L"\r\n");
-							Sleep(500);
-							readPort = dlg->ReadFromBurningPort();
-							dlg->ShowBurningMsg(L"收:" + readPort, 0);
-							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"接收：" + readPort + L"\r\n");
-							commandReceive.Replace(L" ", L"");
-							readPort.Replace(L" ", L"");
-							/*readPort.Replace(L"\r", L"");
-							readPort.Replace(L"\n", L"");*/
-							if (readPort.Find(commandReceive) != -1)
-							{
-								unsigned long long imeiint;
-								CString imeistr;
-								dlg->ShowBurningMsg(L"IMEI:"+CurrentBurningImei + L"烧写成功", 0);
-								dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"IMEI："+ CurrentBurningImei + L"烧写成功\r\n");
-								dlg->updateToCoupleTest(CurrentBurningImei,chipID); //更新IMEI号到耦合表
-								if (haveBandIMEI)
-								{
-									dlg->UpdateToMainSheet(CurrentBurningImei,L"1",chipID, Allversion, MachineName);
-								}
-								else
-								{
-									dlg->insertToMainSheet(CurrentBurningImei, L"1", chipID, Allversion, MachineName);
-								}								
-								if (!haveBandIMEI&&!EnterScanFlag)
-								{
-									if (!dlg->m_NoCheckCodeCheckControl.GetCheck())
-									{
-										justIMEI = CurrentBurningImei.Left(14);
-									}	
-									else
-									{
-										justIMEI = CurrentBurningImei;
-									}
-									imeiint = _atoi64(CStringA(justIMEI)) + IncreasingnumberInt;
-									imeistr = _ui64toa(imeiint, CT2A(justIMEI), 10);																		
-									dlg->SetDlgItemText(IDC_ImeiCurrent_EDIT, imeistr);
-									dlg->SetDlgItemText(IDC_BurningImei_EDIT, imeistr);
-									dlg->UpdateWindow();
-									dlg->UpdataBurningMes(zhidan, imeistr);
-								}
-								haveBandIMEI = FALSE;
-								o = tryTimeInt + 1;
-							}
-							else
-							{
-								o++;
-								if (o > tryTimeInt)
-								{
-									dlg->ShowBurningMsg(L"IMEI:" + CurrentBurningImei + L"烧写失败", 1);
-									dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"IMEI：" + CurrentBurningImei + L"烧写失败\r\n");
-									goto FALILDONE;
-								}
-							}
+							imeiint = _atoi64(CStringA(justIMEI)) + IncreasingnumberInt;
+							imeistr = _ui64toa(imeiint, CT2A(justIMEI), 10);
+							dlg->SetDlgItemText(IDC_ImeiCurrent_EDIT, imeistr);
+							dlg->SetDlgItemText(IDC_BurningImei_EDIT, imeistr);
+							dlg->UpdateWindow();
+							dlg->UpdataBurningMes(zhidan, imeistr);
 						}
+						haveBandIMEI = FALSE;
+						o = tryTimeInt + 1;
 					}
-					else if (commandName.Find(L"读取保存") != -1)
+					else
 					{
-					    commandVal = commandVal + L"\r\n";
-						for (int M = 0; M <= tryTimeInt; )
+						o++;
+						if (o > tryTimeInt)
 						{
-							if (m_BurningConrtolFlag == false)
-							{
-								goto CLOSETHREAD;
-							}
-							CString NumberStr,lastChar,DBziduan;
-							int pos;
-							bWriteStat = WriteFile(dlg->Port1handler, CT2A(commandVal), commandVal.GetLength(), &dwBytesWrite, NULL);
-							dlg->ShowBurningMsg(L"发:" + commandVal, 0);
-							dlg->WritetoTxt(L"Burning_", L"发送：" + commandVal + L"\r\n");
-							Sleep(500);
-							readPort = dlg->ReadFromBurningPort();
-							dlg->ShowBurningMsg(L"收:" + readPort, 0);
-							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"接收：" + readPort + L"\r\n");
-							commandReceive.Replace(L" ", L"");
-							readPort.Replace(L" ", L"");
-							/*readPort.Replace(L"\r", L"");
-							readPort.Replace(L"\n", L"");*/
-							lastChar = commandName.Right(1);
-							if (readPort.Find(commandReceive) != -1)
-							{
-								NumberStr = readPort.Mid(readPort.Find(commandReceive) + commandReceive.GetLength());
-								NumberStr = NumberStr.Left(NumberStr.Find(L"\r\n"));
-								pos = NumberStr.Find('"');
-								if (pos >= 0)
-								{
-									NumberStr = NumberStr.Mid(pos + 1);
-									NumberStr = NumberStr.Left(NumberStr.Find('"'));
-								}
-								else
-								{
-								}
-
-								pos = NumberStr.Find('<');
-								if (pos >= 0)
-								{
-									NumberStr = NumberStr.Mid(pos + 1);
-									NumberStr = NumberStr.Left(NumberStr.Find('>'));
-								}
-								else
-								{
-								}
-
-								//判断前缀
-								if (commandName.Find(L"(PRE)") != -1)
-								{
-									CString PreStr = commandName.Left(commandName.Find(L"(PRE)"));
-
-									if (NumberStr.Find(PreStr) != 0)//如果查找出来不等于0，那就代表前缀肯定不对
-									{
-										dlg->ShowBurningMsg(L"字段前缀错误", 1);
-										dlg->WritetoTxt(L"Burn_" + zhidan + L"_", commandName+L"字段前缀错误\r\n");
-										goto FALILDONE;
-									}
-
-									commandName = commandName.Right(commandName.GetLength() - commandName.Find(L"(PRE)") - 5);//截取掉PRE部分
-								}
-
-								//判断长度
-								if (commandName.Find(L"(LENGTH)") != -1)
-								{
-									CString LengthStr = commandName.Left(commandName.Find(L"(LENGTH)"));
-
-									if (NumberStr.GetLength() != _ttoi(LengthStr))//长度不对就返回错误
-									{
-										dlg->ShowBurningMsg(L"字段长度错误", 1);
-										dlg->WritetoTxt(L"Burn_" + zhidan + L"_", commandName+L"字段长度错误\r\n");
-										goto FALILDONE;
-									}
-
-
-									commandName = commandName.Right(commandName.GetLength() - commandName.Find(L"(LENGTH)") - 8);//截取掉LENGTH部分
-								}
-
-								//判断是否在范围内
-								if (commandName.Find(L"(SectionNumber)") != -1)
-								{
-									CString SectionNumberStr = commandName.Left(commandName.Find(L"(SectionNumber)"));
-
-									CString SectionNumberHighStr = SectionNumberStr.Left(SectionNumberStr.Find(L"-"));
-
-									CString SectionNumberLowStr = SectionNumberStr.Right(SectionNumberStr.GetLength() - SectionNumberStr.Find(L"-") - 1);
-
-									if (NumberStr.GetLength()!= SectionNumberHighStr .GetLength()||NumberStr < SectionNumberHighStr || NumberStr .GetLength()!= SectionNumberLowStr.GetLength()||NumberStr >SectionNumberLowStr)//大于最大值或者小于最小值就返回错误
-									{
-										dlg->ShowBurningMsg(L"字段不在号段内", 1);
-										dlg->WritetoTxt(L"Burn_" + zhidan + L"_", commandName+L"字段不在号段内\r\n");
-										goto FALILDONE;
-									}
-								}
-								//huhu
-								if (lastChar==L"0")
-								{
-									DBziduan = L"SN";
-								}
-								else
-								{
-									DBziduan = L"IMEI" + lastChar;
-								}		
-								if (dlg->checkIMEIInRelative(CurrentBurningImei))  //有IMEI更新
-								{
-									dlg->saveDataToDB(NumberStr, CurrentBurningImei, DBziduan);
-								}
-								else
-								{
-									dlg->insertNewDataToDB(NumberStr, CurrentBurningImei, DBziduan);   //没有则插入
-								}					
-								dlg->ShowBurningMsg(commandName+L"成功", 0);
-								dlg->WritetoTxt(L"Burn_" + zhidan + L"_", commandName + L"成功\r\n");
-								M = tryTimeInt + 1;
-							}
-							else
-							{
-								M++;
-								if (M>tryTimeInt)
-								{
-									dlg->ShowBurningMsg(commandName+L"失败", 1);
-									dlg->WritetoTxt(L"Burn_" + zhidan + L"_", commandName + L"失败\r\n");
-									goto FALILDONE;
-								}
-							}
+							dlg->ShowBurningMsg(L"IMEI:" + CurrentBurningImei + L"烧写失败", 1);
+							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"IMEI：" + CurrentBurningImei + L"烧写失败\r\n");
+							goto FALILDONE;
 						}
 					}
-					else if (commandName.Find(L"关联更新"))
-	                {
-					    CString firstChar, lastChar, NumberStr,ziduan,newSheetData;
-						int pos;
-						//firstChar = commandName.Left(1);
-						lastChar = commandName.Right(1);
-						commandVal = commandVal + L"\r\n";
-						for (int N = 0; N <= tryTimeInt;)
-						{		
-							if (m_BurningConrtolFlag == false)
+				}
+			}
+			else if (commandName.Find(L"读取保存") != -1)
+			{
+				commandVal = commandVal + L"\r\n";
+				for (int M = 0; M <= tryTimeInt; )
+				{
+					if (m_BurningConrtolFlag == false)
+					{
+						goto CLOSETHREAD;
+					}
+					CString NumberStr, lastChar, DBziduan;
+					int pos;
+					bWriteStat = WriteFile(dlg->Port1handler, CT2A(commandVal), commandVal.GetLength(), &dwBytesWrite, NULL);
+					dlg->ShowBurningMsg(L"发:" + commandVal, 0);
+					dlg->WritetoTxt(L"Burning_", L"发送：" + commandVal + L"\r\n");
+					Sleep(500);
+					readPort = dlg->ReadFromBurningPort();
+					dlg->ShowBurningMsg(L"收:" + readPort, 0);
+					dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"接收：" + readPort + L"\r\n");
+					commandReceive.Replace(L" ", L"");
+					readPort.Replace(L" ", L"");
+					/*readPort.Replace(L"\r", L"");
+					readPort.Replace(L"\n", L"");*/
+					lastChar = commandName.Right(1);
+					if (readPort.Find(commandReceive) != -1)
+					{
+						NumberStr = readPort.Mid(readPort.Find(commandReceive) + commandReceive.GetLength());
+						NumberStr = NumberStr.Left(NumberStr.Find(L"\r\n"));
+						pos = NumberStr.Find('"');
+						if (pos >= 0)
+						{
+							NumberStr = NumberStr.Mid(pos + 1);
+							NumberStr = NumberStr.Left(NumberStr.Find('"'));
+						}
+						else
+						{
+						}
+
+						pos = NumberStr.Find('<');
+						if (pos >= 0)
+						{
+							NumberStr = NumberStr.Mid(pos + 1);
+							NumberStr = NumberStr.Left(NumberStr.Find('>'));
+						}
+						else
+						{
+						}
+
+						//判断前缀
+						if (commandName.Find(L"(PRE)") != -1)
+						{
+							CString PreStr = commandName.Left(commandName.Find(L"(PRE)"));
+
+							if (NumberStr.Find(PreStr) != 0)//如果查找出来不等于0，那就代表前缀肯定不对
 							{
-								goto CLOSETHREAD;
+								dlg->ShowBurningMsg(L"字段前缀错误", 1);
+								dlg->WritetoTxt(L"Burn_" + zhidan + L"_", commandName + L"字段前缀错误\r\n");
+								goto FALILDONE;
 							}
-							bWriteStat = WriteFile(dlg->Port1handler, CT2A(commandVal), commandVal.GetLength(), &dwBytesWrite, NULL);
-							dlg->ShowBurningMsg(L"发:" + commandVal, 0);
-							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"发送：" + commandVal + L"\r\n");
-							Sleep(500);
-							readPort = dlg->ReadFromBurningPort();
-							dlg->ShowBurningMsg(L"收:" + readPort, 0);
-							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"接收：" + readPort + L"\r\n");
-							commandReceive.Replace(L" ", L"");
-							readPort.Replace(L" ", L"");
-							/*readPort.Replace(L"\r", L"");
-							readPort.Replace(L"\n", L"");*/
-							if (readPort.Find(commandReceive) != -1)
+
+							commandName = commandName.Right(commandName.GetLength() - commandName.Find(L"(PRE)") - 5);//截取掉PRE部分
+						}
+
+						//判断长度
+						if (commandName.Find(L"(LENGTH)") != -1)
+						{
+							CString LengthStr = commandName.Left(commandName.Find(L"(LENGTH)"));
+
+							if (NumberStr.GetLength() != _ttoi(LengthStr))//长度不对就返回错误
 							{
-								NumberStr = readPort.Mid(readPort.Find(commandReceive) + commandReceive.GetLength());
-								NumberStr = NumberStr.Left(NumberStr.Find(L"\r\n"));
-								pos = NumberStr.Find('"');
-								if (pos >= 0)
-								{
-									NumberStr = NumberStr.Mid(pos + 1);
-									NumberStr = NumberStr.Left(NumberStr.Find('"'));
-								}
-								else
-								{
-								}
-								pos = NumberStr.Find('<');
-								if (pos >= 0)
-								{
-									NumberStr = NumberStr.Mid(pos + 1);
-									NumberStr = NumberStr.Left(NumberStr.Find('>'));
-								}
-								else
-								{
-								}
-								if (lastChar==L"0")
-								{
-									ziduan = L"SN";
-								}
-								else
-								{
-									ziduan = L"IMEI" + lastChar;
-								}
-								newSheetData = dlg->getNewSheetData(NumberStr, ziduan);//获取新关联表的关联数据
-								if (dlg->checkIMEIInRelative(CurrentBurningImei))   //关联表有IMEI，则更新
-								{
-									dlg->saveNewDataToDB(newSheetData, CurrentBurningImei, ziduan);
-								}
-								else
-								{
-									dlg->insertNewDataToDB(newSheetData, CurrentBurningImei, ziduan);  //否则插入
-								}
-								dlg->ShowBurningMsg(commandName+L"成功", 0);
-								dlg->WritetoTxt(L"Burn_" + zhidan + L"_",commandName+L"成功\r\n");
-								N = tryTimeInt + 1;
+								dlg->ShowBurningMsg(L"字段长度错误", 1);
+								dlg->WritetoTxt(L"Burn_" + zhidan + L"_", commandName + L"字段长度错误\r\n");
+								goto FALILDONE;
 							}
-							else
+
+
+							commandName = commandName.Right(commandName.GetLength() - commandName.Find(L"(LENGTH)") - 8);//截取掉LENGTH部分
+						}
+
+						//判断是否在范围内
+						if (commandName.Find(L"(SectionNumber)") != -1)
+						{
+							CString SectionNumberStr = commandName.Left(commandName.Find(L"(SectionNumber)"));
+
+							CString SectionNumberHighStr = SectionNumberStr.Left(SectionNumberStr.Find(L"-"));
+
+							CString SectionNumberLowStr = SectionNumberStr.Right(SectionNumberStr.GetLength() - SectionNumberStr.Find(L"-") - 1);
+
+							if (NumberStr.GetLength() != SectionNumberHighStr.GetLength() || NumberStr < SectionNumberHighStr || NumberStr.GetLength() != SectionNumberLowStr.GetLength() || NumberStr >SectionNumberLowStr)//大于最大值或者小于最小值就返回错误
 							{
-								N++;
-								if (N > tryTimeInt)
-								{
-									dlg->ShowBurningMsg(commandName + L"失败", 1);
-									dlg->WritetoTxt(L"Burn_" + zhidan + L"_", commandName + L"失败\r\n");
-									goto FALILDONE;
-								}
+								dlg->ShowBurningMsg(L"字段不在号段内", 1);
+								dlg->WritetoTxt(L"Burn_" + zhidan + L"_", commandName + L"字段不在号段内\r\n");
+								goto FALILDONE;
 							}
 						}
-	                }
+						//huhu
+						if (lastChar == L"0")
+						{
+							DBziduan = L"SN";
+						}
+						else
+						{
+							DBziduan = L"IMEI" + lastChar;
+						}
+						if (dlg->checkIMEIInRelative(CurrentBurningImei))  //有IMEI更新
+						{
+							dlg->saveDataToDB(NumberStr, CurrentBurningImei, DBziduan);
+						}
+						else
+						{
+							dlg->insertNewDataToDB(NumberStr, CurrentBurningImei, DBziduan);   //没有则插入
+						}
+						dlg->ShowBurningMsg(commandName + L"成功", 0);
+						dlg->WritetoTxt(L"Burn_" + zhidan + L"_", commandName + L"成功\r\n");
+						M = tryTimeInt + 1;
+					}
+					else
+					{
+						M++;
+						if (M > tryTimeInt)
+						{
+							dlg->ShowBurningMsg(commandName + L"失败", 1);
+							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", commandName + L"失败\r\n");
+							goto FALILDONE;
+						}
+					}
+				}
+			}
+			else if (commandName.Find(L"关联更新"))
+			{
+				CString firstChar, lastChar, NumberStr, ziduan, newSheetData;
+				int pos;
+				//firstChar = commandName.Left(1);
+				lastChar = commandName.Right(1);
+				commandVal = commandVal + L"\r\n";
+				for (int N = 0; N <= tryTimeInt;)
+				{
+					if (m_BurningConrtolFlag == false)
+					{
+						goto CLOSETHREAD;
+					}
+					bWriteStat = WriteFile(dlg->Port1handler, CT2A(commandVal), commandVal.GetLength(), &dwBytesWrite, NULL);
+					dlg->ShowBurningMsg(L"发:" + commandVal, 0);
+					dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"发送：" + commandVal + L"\r\n");
+					Sleep(500);
+					readPort = dlg->ReadFromBurningPort();
+					dlg->ShowBurningMsg(L"收:" + readPort, 0);
+					dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"接收：" + readPort + L"\r\n");
+					commandReceive.Replace(L" ", L"");
+					readPort.Replace(L" ", L"");
+					/*readPort.Replace(L"\r", L"");
+					readPort.Replace(L"\n", L"");*/
+					if (readPort.Find(commandReceive) != -1)
+					{
+						NumberStr = readPort.Mid(readPort.Find(commandReceive) + commandReceive.GetLength());
+						NumberStr = NumberStr.Left(NumberStr.Find(L"\r\n"));
+						pos = NumberStr.Find('"');
+						if (pos >= 0)
+						{
+							NumberStr = NumberStr.Mid(pos + 1);
+							NumberStr = NumberStr.Left(NumberStr.Find('"'));
+						}
+						else
+						{
+						}
+						pos = NumberStr.Find('<');
+						if (pos >= 0)
+						{
+							NumberStr = NumberStr.Mid(pos + 1);
+							NumberStr = NumberStr.Left(NumberStr.Find('>'));
+						}
+						else
+						{
+						}
+						if (lastChar == L"0")
+						{
+							ziduan = L"SN";
+						}
+						else
+						{
+							ziduan = L"IMEI" + lastChar;
+						}
+						newSheetData = dlg->getNewSheetData(NumberStr, ziduan);//获取新关联表的关联数据
+						if (dlg->checkIMEIInRelative(CurrentBurningImei))   //关联表有IMEI，则更新
+						{
+							dlg->saveNewDataToDB(newSheetData, CurrentBurningImei, ziduan);
+						}
+						else
+						{
+							dlg->insertNewDataToDB(newSheetData, CurrentBurningImei, ziduan);  //否则插入
+						}
+						dlg->ShowBurningMsg(commandName + L"成功", 0);
+						dlg->WritetoTxt(L"Burn_" + zhidan + L"_", commandName + L"成功\r\n");
+						N = tryTimeInt + 1;
+					}
+					else
+					{
+						N++;
+						if (N > tryTimeInt)
+						{
+							dlg->ShowBurningMsg(commandName + L"失败", 1);
+							dlg->WritetoTxt(L"Burn_" + zhidan + L"_", commandName + L"失败\r\n");
+							goto FALILDONE;
+						}
+					}
+				}
+			}
 		}
 		dlg->SetDlgItemText(IDC_BurningRemind_STATIC, _T("成功"));
 		if (dlg->m_NoCheckCodeCheckControl.GetCheck())
@@ -3948,7 +3986,8 @@ UINT SendDBCommand(LPVOID lparam)
 		{
 			BurnSendToLd = CurrentBurningImei.Left(14);
 		}
-		dlg->SetDlgItemTextW(IDC_NEXTLDIMEI, BurnSendToLd);
+		//dlg->SetDlgItemTextW(IDC_NEXTLDIMEI, BurnSendToLd);
+		dlg->BurnVec.push_back(BurnSendToLd);
 		dlg->UpdateWindow();
 		j = 3;
 		dlg->BurningCylinderPress(1);
@@ -3988,7 +4027,7 @@ UINT SendDBCommand(LPVOID lparam)
 				{
 					if (EnterScanFlag)
 					{
-						dlg->SetDlgItemTextW(IDC_BurningImei_EDIT,L"");
+						dlg->SetDlgItemTextW(IDC_BurningImei_EDIT, L"");
 					}
 					dlg->SetDlgItemText(IDC_BurningRemind_STATIC, _T("就绪"));
 					dlg->WritetoTxt(L"Burn_" + zhidan + L"_", L"就绪\r\n");

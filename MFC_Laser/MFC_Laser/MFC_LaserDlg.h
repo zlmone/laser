@@ -8,18 +8,19 @@
 #include "AutoCombox.h"
 #include "MarkEzdDll.h"
 #include "LDStartDlg.h"
+#include <vector>
 using namespace std;
 
 //线程函数
-UINT readFromLd2(LPVOID lparam);
-UINT SendDBCommand(LPVOID lparam);
+UINT readFromLd2(LPVOID lparam);//tcp接收信息
+UINT SendDBCommand(LPVOID lparam);//烧写
+UINT SendComparePortThread(LPVOID lpParam);//对比串口写函数线程
+UINT listenThread(LPVOID lparam);//tcp监听
+UINT ReadLdPortThread(LPVOID pParam);//读镭雕机串口
+
+//其它函数
 void Sdk_Int2Char(int p_nNum, char * p_Ch);
 void Sdk_Str2BcdStr(char * p_Str, int p_nLen, char * p_StrBcd);
-UINT SendComparePortThread(LPVOID lpParam);//对比串口写函数线程
-
-UINT listenThread(LPVOID lparam);//tcp监听
-//读镭雕机串口
-UINT ReadLdPortThread(LPVOID pParam);
 
 // CMFC_LaserDlg 对话框
 class CMFC_LaserDlg : public CDialogEx
@@ -53,7 +54,11 @@ public:
 	afx_msg void OnBnClickedDbconfigButton();
 
 public:
-
+	vector<CString>BurnVec;
+	vector<CString>LdVec;
+	int LdIndex = 0;
+	int CompareIndex = 0;
+public:
 	//获取本机信息变量和函数
 	CString m_pcnameEdit;
 	CString m_pcipEdit;
@@ -246,29 +251,7 @@ public:
 
 	void UpdateToMainSheet(CString IMEI, CString result, CString chipid, CString version, CString machinename);
 
-	
-
-
-
-
-
-
-
-
-
-
-
-	
-
-
-
-
-
-
-
-
-
-	
+	vector<vector<CString>>BurLdCpVec;
 	BOOL m_LdRandom;
 	CRichEditCtrl m_BurnLog;
 	CRichEditCtrl m_CpLog;
@@ -281,4 +264,6 @@ public:
 	BOOL m_AutoCheckPrintVal;
 	afx_msg void OnDropdownJdqCombo();
 	CComboBox m_BurnPort;
+	CString m_BurningEditVal;
+	CString m_EndIMEIVal;
 };
