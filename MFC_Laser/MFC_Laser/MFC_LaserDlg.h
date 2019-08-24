@@ -191,10 +191,6 @@ public:
 	HANDLE Port5handler;
 	BYTE * CStrToByte(int len, CString str);
 	CString HexStr2BinStr(CString HexStr);
-	void BurningCylinderPress(int argument); //控制烧写工位气缸上升和下压
-	void CompareCylinderPress(int argument); //控制对比工位气缸上升和下压
-	void BatOnAndOff(int argument);
-	afx_msg void OnKillfocusCompareimei2Edit();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	CEdit m_CompareLog;
 	CEdit myLdport;
@@ -258,11 +254,10 @@ public:
 	CComboBox m_IncreasingNumber;
 	afx_msg void OnBnClickedButton2();
 	BOOL m_NocheckCode;
-	afx_msg void OnBnClickedButton3();
-	afx_msg void OnBnClickedButton5();
 	CButton m_AutoCheckPrint;
 	BOOL m_AutoCheckPrintVal;
 	afx_msg void OnDropdownJdqCombo();
+	void SendToPlc(int MsgNum);
 	CComboBox m_BurnPort;
 	CString m_BurningEditVal;
 	CString m_EndIMEIVal;
