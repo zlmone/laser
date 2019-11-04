@@ -2,28 +2,27 @@
   MFC_LaserDlg.cpp
 f:\版本库\laser\mfc_laser\mfc_laser\resource.h(95): warning C4005: “IDC_NO”: 宏重定义
   c:\program files (x86)\microsoft sdks\windows\v7.1a\include\winuser.h(8839): note: 参见“IDC_NO”的前一个定义
-f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(1044): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(1086): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(340): note: 参见“strncpy”的声明
-f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(1100): warning C4018: “>=”: 有符号/无符号不匹配
-f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(1193): warning C4996: '_ui64toa': This function or variable may be unsafe. Consider using _ui64toa_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(1192): warning C4018: “>=”: 有符号/无符号不匹配
+f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(1285): warning C4996: '_ui64toa': This function or variable may be unsafe. Consider using _ui64toa_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdlib.h(712): note: 参见“_ui64toa”的声明
-f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(1237): warning C4996: '_ui64toa': This function or variable may be unsafe. Consider using _ui64toa_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(1329): warning C4996: '_ui64toa': This function or variable may be unsafe. Consider using _ui64toa_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdlib.h(712): note: 参见“_ui64toa”的声明
-f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(1464): warning C4996: '_ui64toa': This function or variable may be unsafe. Consider using _ui64toa_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(1639): warning C4996: '_ui64toa': This function or variable may be unsafe. Consider using _ui64toa_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdlib.h(712): note: 参见“_ui64toa”的声明
-f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(1091): warning C4101: “sendSucceedFlag”: 未引用的局部变量
-f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(1634): warning C4101: “ComStat”: 未引用的局部变量
-f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(1635): warning C4101: “dwErrorFlags”: 未引用的局部变量
-f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(1724): warning C4101: “length”: 未引用的局部变量
-f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(2099): warning C4244: “=”: 从“__int64”转换到“int”，可能丢失数据
-f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(2555): warning C4018: “<=”: 有符号/无符号不匹配
-f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(2783): warning C4996: '_ui64toa': This function or variable may be unsafe. Consider using _ui64toa_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(1183): warning C4101: “sendSucceedFlag”: 未引用的局部变量
+f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(1804): warning C4101: “length”: 未引用的局部变量
+f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(2179): warning C4244: “=”: 从“__int64”转换到“int”，可能丢失数据
+f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(2635): warning C4018: “<=”: 有符号/无符号不匹配
+f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(2863): warning C4996: '_ui64toa': This function or variable may be unsafe. Consider using _ui64toa_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdlib.h(712): note: 参见“_ui64toa”的声明
-f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(2851): warning C4996: '_ui64toa': This function or variable may be unsafe. Consider using _ui64toa_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(2931): warning C4996: '_ui64toa': This function or variable may be unsafe. Consider using _ui64toa_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdlib.h(712): note: 参见“_ui64toa”的声明
-f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(2806): warning C4102: “HAVEBANDIMEI”: 未引用的标签
-f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(2488): warning C4101: “FailTestFlag”: 未引用的局部变量
-f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(3280): warning C4018: “>=”: 有符号/无符号不匹配
-f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(3902): warning C4101: “ComStat”: 未引用的局部变量
-f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(3903): warning C4101: “dwErrorFlags”: 未引用的局部变量
+f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(2886): warning C4102: “HAVEBANDIMEI”: 未引用的标签
+f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(2568): warning C4101: “FailTestFlag”: 未引用的局部变量
+f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(3360): warning C4018: “>=”: 有符号/无符号不匹配
+f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(3374): warning C4018: “<”: 有符号/无符号不匹配
+f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(4000): warning C4101: “ComStat”: 未引用的局部变量
+f:\版本库\laser\mfc_laser\mfc_laser\mfc_laserdlg.cpp(4001): warning C4101: “dwErrorFlags”: 未引用的局部变量
   MFC_Laser.vcxproj -> F:\xhh工作日常\工作项目\MFC_Laser\MFC_Laser\LaserBin\MFC_Laser.exe

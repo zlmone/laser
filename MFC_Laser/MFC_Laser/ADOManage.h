@@ -152,6 +152,7 @@ public:
 	CString GetTime();//获取当前系统时间
 	CString CreateIMEI15(CString imei);
 	CString GetSubSegment(CString zhidan);
+	int CheckScanDataExit(CString ziduan, CString value);
 	//用来算IMEI校验位用的
 public:
 	CString IMEI2Str, IMEI3Str, IMEI4Str, IMEI5Str, IMEI6Str, IMEI7Str, IMEI8Str, IMEI9Str, IMEI10Str, IMEI11Str\

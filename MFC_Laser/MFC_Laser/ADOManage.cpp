@@ -1346,93 +1346,6 @@ _RecordsetPtr ADOManage::UpdateCompareData(CString strimei,CString result)
 	return m_pRecordSet;
 }
 
-
-
-//存储当前镭雕的imei号
-//_RecordsetPtr ADOManage::UpdateIMEICurrent(CString strzhidan, CString imeicurrent)
-//{
-	////初始化Recordset指针
-	//m_pRecordSet.CreateInstance(__uuidof(Recordset));
-
-	//_variant_t Affectline;
-
-	////把IMEI号+1
-	//unsigned long long imeiint = 0;
-	//imeiint = _atoi64(CStringA(imeicurrent)) + 1;
-	//imeicurrent = _ui64toa(imeiint, CT2A(imeicurrent), 10);
-
-	////更新一下最后一个扫入的IMEI号，一般来说不会更新失败，要是失败了，那肯定是订单号被干掉了
-	//CString strSql = _T("UPDATE[") + m_Seconddbname + _T("].[dbo].[") + m_Secondformname + _T("]") + _T("SET LDIMEICurrent = '") + imeicurrent + _T("' where ZhiDan = '") + strzhidan + _T("'");
-
-	//try{
-	//	m_pConnection->Execute(_bstr_t(strSql), &Affectline, adCmdText);//直接执行语句
-	//}
-	//catch (_com_error &e)
-	//{
-	//	AfxMessageBox(e.Description());/*打印出异常原因*/
-	//}
-	//return m_pRecordSet;
-//}
-
-
-//下面三个数据库查询模块所用的函数
-//将对应的订单号中已经插入的IMEI展示出来
-//_RecordsetPtr ADOManage::ShowInsertImeiByOrderNumber(CString ordernumber)
-//{
-	//m_pRecordSet.CreateInstance(__uuidof(Recordset));
-	////初始化Recordset指针
-	//CString strSql = _T("SELECT [IMEI],[InputTime] FROM [") + m_Firstdbname + _T("].[dbo].[") + m_Firstformname + _T("] WHERE [ZhiDan] =") + _T("'") + ordernumber + _T("'");
-
-	//m_pRecordSet = m_pConnection->Execute(_bstr_t(strSql), NULL, adCmdText);//直接执行语句
-	//return m_pRecordSet;
-//}
-
-//将对应的订单号中已经重复的IMEI展示出来
-//_RecordsetPtr ADOManage::ShowRepeatImeiByOrderNumber(CString ordernumber)
-//{
-	//m_pRecordSet.CreateInstance(__uuidof(Recordset));
-	////初始化Recordset指针
-	//CString strSql = _T("SELECT [IMEI],[ReLdImeiNum],[ReLdImeiTime] FROM [") + m_Firstdbname + _T("].[dbo].[") + m_Firstformname + _T("] WHERE [ZhiDan] =") + _T("'") + ordernumber + _T("'") + _T("AND [ReLdImeiNum]>0");
-
-	//m_pRecordSet = m_pConnection->Execute(_bstr_t(strSql), NULL, adCmdText);//直接执行语句
-	//return m_pRecordSet;
-//}
-
-//将对应的订单号中未插入的IMEI展示出来
-//_RecordsetPtr ADOManage::ShowUnImeiByOrderNumber(CString ordernumber, CString imeistart, CString imeiend)
-//{
-	//m_pRecordSet.CreateInstance(__uuidof(Recordset));
-	////初始化Recordset指针
-
-	//CString strSql1, strSql2, strSql3, imeitemp;
-
-	////先清除一遍临时表
-	//strSql3 = _T("truncate table[testLD].[dbo].[Gps_ManuUnLdParam]");
-	//m_pConnection->Execute(_bstr_t(strSql3), NULL, adCmdText);//直接执行语句
-
-	////然后将数据插入到一张临时表中
-	//unsigned long long a, b;
-	//a = _atoi64(CStringA(imeistart));
-	//b = _atoi64(CStringA(imeiend));
-	//for (; a <= b; a++)
-	//{
-	//	imeistart = _ui64toa(a, CT2A(imeistart), 10);
-	//	imeitemp = CreateIMEI15(imeistart);
-	//	strSql1 = _T("insert into[testLD].[dbo].[Gps_ManuUnLdParam](UNIMEI)values('") + imeitemp + _T("')");
-	//	m_pConnection->Execute(_bstr_t(strSql1), NULL, adCmdText);
-	//}
-
-	////接着获取范围内没有的数据
-	//strSql2 = _T("select[UNIMEI] FROM[testLD].[dbo].[Gps_ManuUnLdParam] where[UNIMEI] not in(select[IMEI] FROM[") + m_Firstdbname + _T("].[dbo].[") + m_Firstformname + _T("] where[zhidan] = '") + ordernumber + _T("')");
-	//m_pRecordSet = m_pConnection->Execute(_bstr_t(strSql2), NULL, adCmdText);//直接执行语句
-
-	////最后清除临时表
-	//m_pConnection->Execute(_bstr_t(strSql3), NULL, adCmdText);//直接执行语句
-
-	//return m_pRecordSet;
-//}
-
-
 //以下是通用函数
 //清除数据库某张表
 _RecordsetPtr ADOManage::GetRst()
@@ -1505,4 +1418,20 @@ CString ADOManage::GetSubSegment(CString zhidan)
 		}
 	}
 	return IMEI;
+}
+
+int ADOManage::CheckScanDataExit(CString ziduan, CString value)
+{
+	m_pRecordSet.CreateInstance(__uuidof(Recordset));
+	//初始化Recordset指针
+	CString strSql = _T("SELECT * FROM [GPSTest].[dbo].[DataRelativeSheet] WHERE ")+ziduan +_T(" = '") + value + _T("'");
+
+	m_pRecordSet = m_pConnection->Execute(_bstr_t(strSql), NULL, adCmdText);//直接执行语句
+
+	//如果查出来的数据为空，则m_pRecordSet->adoEOF返回的是ture，此时函数返回0代表此IMEI不存在，否则返回1代表IMEI存在
+	if (m_pRecordSet->adoEOF)
+	{
+		return 0;
+	}
+	return 1;
 }

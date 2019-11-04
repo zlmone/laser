@@ -9,6 +9,7 @@
 #include "MarkEzdDll.h"
 #include "LDStartDlg.h"
 #include <vector>
+#include "ComboListCtrl.h"
 using namespace std;
 
 //线程函数
@@ -113,6 +114,9 @@ public:
 	afx_msg void OnBnClickedOpenldsystemButton();
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 
+	BOOL AutoGetAllRelativeData(CString IMEI);
+
+
 	/*串口模块函数*/
 
 	CWinThread* WriteThread;//下载写线程句柄
@@ -130,7 +134,6 @@ public:
 	//初始化串口
 	int CloseCom(HANDLE handler);//关闭串口
 	void GetCommPort(CComboBox *pComboBox, CString &ComNo);
-	void LdCylinderPress(int argument);
 	//获取当前串口号
 	void FindCommPort(CComboBox *pComboBox, CString &ComNo);//从注册表中寻找串口号
 	int CheckIMEI(CString IMEI); //判断IMEI是否存在
@@ -261,4 +264,5 @@ public:
 	CComboBox m_BurnPort;
 	CString m_BurningEditVal;
 	CString m_EndIMEIVal;
+	CComboListCtrl m_AutoList;
 };
